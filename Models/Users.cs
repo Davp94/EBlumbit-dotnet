@@ -27,5 +27,7 @@ public class Users
     [Column("password")]
     public string Password { get; set; }
 
+    public bool State { get; set; }
+
     public ICollection<RoleUser> RoleUsers { get; set; } = [];
 }
