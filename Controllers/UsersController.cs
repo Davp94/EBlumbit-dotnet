@@ -11,39 +11,42 @@ namespace EBlumbit.Controllers
         private readonly UserService _userService = userService;
 
         [HttpGet]
-        public async Task<ICollection<Users>> GetAllUsers()
+        public async Task<ActionResult<ICollection<Users>>> GetAllUsers()
         {
-            return _userService.GetAllUsers().Result.ToList();
+            return Ok(_userService.GetAllUsers().Result.ToList());
         }
 
         [HttpGet("{id}")]
-        public async Task<Users> GetUserById(int id)
+        public async Task<ActionResult<Users>> GetUserById(int id)
         {
-            return _userService.GetUserById(id).Result;
+            return Ok(_userService.GetUserById(id).Result);
         }
 
         [HttpPost]
-        public async Task<Users> CreateUser([FromBody]Users user)
+        public async Task<ActionResult<Users>> CreateUser([FromBody]Users user)
         {
-            return _userService.CreateUser(user).Result;
+            return Created("",_userService.CreateUser(user).Result);
         }
 
         [HttpPut]
-        public async Task<Users> UpdateUser([FromBody] Users user)
+        public async Task<IActionResult> UpdateUser([FromBody] Users user)
         {
-            return _userService.UpdateUser(user).Result;
+            await _userService.UpdateUser(user);
+            return NoContent();
         }
 
         [HttpDelete("{id}")]
-        public async Task DeleteUser(int id)
+        public async Task<IActionResult> DeleteUser(int id)
         {
             await _userService.DeleteUsuario(id);
+            return NoContent();
         }
 
         [HttpPatch("{id}")]
-        public async Task LogicalDeleteUser(int id)
+        public async Task<IActionResult> LogicalDeleteUser(int id)
         {
             await _userService.LogicalDeleteUsuario(id);
+            return NoContent();
         }
     }
 }
