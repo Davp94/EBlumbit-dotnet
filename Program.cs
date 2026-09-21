@@ -15,6 +15,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.AddScoped<UserRepository>();
 builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<PermissionRepository>();
+builder.Services.AddScoped<PermissionService>();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddControllers();
