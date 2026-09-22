@@ -19,6 +19,8 @@ public class AppDbContext : DbContext
 
     public DbSet<PermissionRole> PermissionRoles => Set<PermissionRole>();
 
+    public DbSet<Categoria> Categorias => Set<Categoria>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -76,5 +78,16 @@ public class AppDbContext : DbContext
             entity.HasOne(e => e.Role).WithMany(r => r.PermissionRoles).HasForeignKey(e => e.RoleId);
             entity.HasOne(e => e.Permission).WithMany(p => p.PermissionRoles).HasForeignKey(e => e.PermissionId);
         });
+
+        //Categorias
+        modelBuilder.Entity<Categoria>(entity =>
+        {
+            entity.ToTable("categorias");
+            entity.HasKey(e=>e.Id);
+            entity.Property(e=>e.Id).HasColumnName("id");
+            entity.Property(e=>e.Nombre).HasColumnName("nombre").IsRequired().HasMaxLength(100);
+            entity.Property(e=>e.Detalle).HasColumnName("detalle");
+        });
+
     }
 }
