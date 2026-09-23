@@ -2,14 +2,13 @@ using System;
 
 namespace EBlumbit.Models;
 
-public class Categoria
+public class Almacenes
 {
-
     public int Id { get; set; }
+
+    public string Codigo { get; set;}
 
     public string Nombre { get; set;}
 
     public string? Detalle { get; set;}
-
-    public ICollection<Productos> Productos { get; set; } = [];
 }

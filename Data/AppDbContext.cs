@@ -21,6 +21,8 @@ public class AppDbContext : DbContext
 
     public DbSet<Categoria> Categorias => Set<Categoria>();
 
+    public DbSet<Sucursales> Sucursales => Set<Sucursales>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -89,5 +91,30 @@ public class AppDbContext : DbContext
             entity.Property(e=>e.Detalle).HasColumnName("detalle");
         });
 
+        //Sucursales
+        modelBuilder.Entity<Sucursales>(entity => 
+        {
+            entity.ToTable("sucursales")
+                .HasKey(s => s.Id);
+            entity.Property(s => s.Id)
+                .HasColumnName("id")
+                .ValueGeneratedOnAdd();
+            entity.Property(s => s.Nombre)
+                .HasColumnName("nombre")
+                .HasColumnType("varchar(100)")
+                .IsRequired();
+            entity.Property(s => s.Direccion)
+                .HasColumnName("direccion")
+                .HasColumnType("varchar(255)")
+                .IsRequired();
+            entity.Property(s => s.Telefono)
+                .HasColumnName("telefono")
+                .HasColumnType("varchar(20)")
+                .IsRequired();
+            entity.Property(s => s.Ciudad)
+                .HasColumnName("ciudad")
+                .HasColumnType("varchar(100)")
+                .IsRequired();
+        });
     }
 }
