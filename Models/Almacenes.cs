@@ -10,5 +10,8 @@ public class Almacenes
 
     public string Nombre { get; set;}
 
-    public string? Detalle { get; set;}
+    public string? Descripcion { get; set;}
+
+    public int SucursalId { get; set;}
+    public Sucursales Sucursal { get; set; }
 }
