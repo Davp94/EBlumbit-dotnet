@@ -13,7 +13,6 @@ public class Venta
 
     public bool Estado { get; set; }
 
-    public string Detalle { get; set; }
 
     public string Observacion { get; set; }
 
