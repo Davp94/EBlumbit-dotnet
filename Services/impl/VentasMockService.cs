@@ -4,7 +4,7 @@ using EBlumbit.Services.spec;
 
 namespace EBlumbit.Services.impl;
 
-public class VentasMockService : IVentasService
+public class VentasMockService
 {
     public Task AnularVenta(int id)
     {

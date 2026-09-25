@@ -24,5 +24,7 @@ public class Venta
 
     public Cliente cliente { get; set; }
 
+    public List<DetalleVenta> DetalleVentas { get; set; }
+
 
 }

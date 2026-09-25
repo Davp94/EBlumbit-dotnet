@@ -6,22 +6,28 @@ namespace EBlumbit.Services.impl;
 
 public class VentasService : IVentasService
 {
-    public Task AnularVenta(int id)
+    public async Task AnularVenta(int id)
     {
         throw new NotImplementedException();
     }
 
-    public Task<VentasResponse> CreateVenta(CreateVentaRequest createVentaRequest)
+    public async Task<VentasResponse> CreateVenta(CreateVentaRequest createVentaRequest)
+    {
+        //validate stock
+        //create venta -> Venta ID
+        // - generate data from server
+        //create detalleVenta
+        //update inventario
+        //return data
+        throw new NotImplementedException();
+    }
+
+    public async Task<IEnumerable<VentasResponse>> FindAllVentas()
     {
         throw new NotImplementedException();
     }
 
-    public Task<IEnumerable<VentasResponse>> FindAllVentas()
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task<VentasDetailResponse> FindVentaById(int id)
+    public async Task<VentasDetailResponse> FindVentaById(int id)
     {
         throw new NotImplementedException();
     }
