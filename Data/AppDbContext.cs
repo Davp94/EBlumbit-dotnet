@@ -23,6 +23,8 @@ public class AppDbContext : DbContext
 
     public DbSet<Sucursales> Sucursales => Set<Sucursales>();
 
+      public DbSet<Inventario> Inventarios => Set<Inventario>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
