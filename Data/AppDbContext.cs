@@ -23,7 +23,17 @@ public class AppDbContext : DbContext
 
     public DbSet<Sucursales> Sucursales => Set<Sucursales>();
 
-      public DbSet<Inventario> Inventarios => Set<Inventario>();
+     public DbSet<Venta> Ventas => Set<Venta>();
+
+    public DbSet<DetalleVenta> DetalleVentas => Set<DetalleVenta>();
+
+    public DbSet<Inventario> Inventarios => Set<Inventario>();
+
+    public DbSet<Productos> Productos => Set<Productos>();
+
+    public DbSet<Cliente> Clientes => Set<Cliente>();
+
+    public DbSet<Almacenes> Almacenes => Set<Almacenes>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -94,27 +104,21 @@ public class AppDbContext : DbContext
         });
 
         //Sucursales
-        modelBuilder.Entity<Sucursales>(entity => 
+        modelBuilder.Entity<Sucursales>(entity =>
         {
             entity.ToTable("sucursales")
-                .HasKey(s => s.Id);
-            entity.Property(s => s.Id)
-                .HasColumnName("id")
-                .ValueGeneratedOnAdd();
-            entity.Property(s => s.Nombre)
-                .HasColumnName("nombre")
+            .HasKey(s => s.Id);
+            entity.Property(s => s.Id).HasColumnName("id").ValueGeneratedOnAdd();
+            entity.Property(s => s.Nombre).HasColumnName("nombre")
                 .HasColumnType("varchar(100)")
                 .IsRequired();
-            entity.Property(s => s.Direccion)
-                .HasColumnName("direccion")
+            entity.Property(s => s.Direccion).HasColumnName("direccion")
                 .HasColumnType("varchar(255)")
                 .IsRequired();
-            entity.Property(s => s.Telefono)
-                .HasColumnName("telefono")
+            entity.Property(s => s.Telefono).HasColumnName("telefono")
                 .HasColumnType("varchar(20)")
                 .IsRequired();
-            entity.Property(s => s.Ciudad)
-                .HasColumnName("ciudad")
+            entity.Property(s => s.Ciudad).HasColumnName("ciudad")
                 .HasColumnType("varchar(100)")
                 .IsRequired();
         });

@@ -58,6 +58,7 @@ public class VentasService(IVentaRepository ventaRepository, IInventarioReposito
             var createdVenta = await _ventasRepository.CreateVenta(venta);
 
             await transaction.CommitAsync();
+            return VentasBuilder.ToResponseDto(createdVenta);
         }
         catch
         {
