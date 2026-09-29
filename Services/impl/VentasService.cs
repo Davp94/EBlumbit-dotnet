@@ -22,10 +22,10 @@ public class VentasService(IVentaRepository ventaRepository, IInventarioReposito
         return ventas.Select(VentasBuilder.ToResponseDto);
     }
 
-    public async Task<VentasDetailResponse> FindVentaById(int id)
+    public async Task<VentasDetailResponse?> FindVentaById(int id)
     {
         var venta = await _ventasRepository.GetVentaById(id);
-        return VentasBuilder.ToDetailResponseDto(venta);
+        return venta == null ? null : VentasBuilder.ToDetailResponseDto(venta);
     }
 
     public async Task<VentasResponse> CreateVenta(CreateVentaRequest createVentaRequest)
@@ -44,7 +44,7 @@ public class VentasService(IVentaRepository ventaRepository, IInventarioReposito
                 var inventario = await _inventarioRepository.GetByProductoAndAlmacen(detalle.ProductoId, detalle.AlmacenId);
                 if(inventario == null || inventario.CantidadActual < detalle.Cantidad)
                 {
-                    throw new InvalidOperationException($"Stock insuficiente en inventario para el producto {detalle.ProductoId} en el almacen {detalle.AlmacenId}. Disponible: {inventario.CantidadActual} Solicitado: {detalle.Cantidad}");
+                    throw new InvalidOperationException($"Stock insuficiente en inventario para el producto {detalle.ProductoId} en el almacen {detalle.AlmacenId}. Disponible: {inventario?.CantidadActual ?? 0} Solicitado: {detalle.Cantidad}");
                 }
                 inventario.CantidadActual -= detalle.Cantidad;
                 inventario.FechaActualizacion = DateTime.UtcNow;

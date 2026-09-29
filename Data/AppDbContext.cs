@@ -35,6 +35,12 @@ public class AppDbContext : DbContext
 
     public DbSet<Almacenes> Almacenes => Set<Almacenes>();
 
+    public DbSet<Compra> Compras => Set<Compra>();
+
+    public DbSet<DetalleCompra> DetalleCompras => Set<DetalleCompra>();
+
+    public DbSet<Proveedor> Proveedores => Set<Proveedor>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -122,5 +128,100 @@ public class AppDbContext : DbContext
                 .HasColumnType("varchar(100)")
                 .IsRequired();
         });
+
+        modelBuilder.Entity<Proveedor>(entity =>
+        {
+            entity.ToTable("proveedores");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id").ValueGeneratedOnAdd();
+            entity.Property(e => e.RazonSocial).HasColumnName("razon_social").HasMaxLength(255).IsRequired();
+            entity.Property(e => e.NroIdentificacion).HasColumnName("nro_identificacion").HasMaxLength(30);
+            entity.Property(e => e.Contacto).HasColumnName("contacto").HasMaxLength(100).IsRequired();
+            entity.Property(e => e.Telefono).HasColumnName("telefono").HasMaxLength(20).IsRequired();
+            entity.Property(e => e.Correo).HasColumnName("correo").HasMaxLength(150);
+            entity.Property(e => e.Observaciones).HasColumnName("observaciones");
+            entity.Property(e => e.Estado).HasColumnName("estado");
+        });
+
+        modelBuilder.Entity<Compra>(entity =>
+        {
+            entity.ToTable("compras");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id").ValueGeneratedOnAdd();
+            entity.Property(e => e.Codigo).HasColumnName("codigo").HasMaxLength(100).IsRequired();
+            entity.HasIndex(e => e.Codigo).IsUnique();
+            entity.Property(e => e.Fecha).HasColumnName("fecha").IsRequired();
+            entity.Property(e => e.ProveedorId).HasColumnName("proveedor_id").IsRequired();
+            entity.Property(e => e.UsuarioId).HasColumnName("user_id").IsRequired();
+            entity.Property(e => e.DescuentoTotal).HasColumnName("descuento_total").HasPrecision(12, 2);
+            entity.Property(e => e.Estado).HasColumnName("estado").HasMaxLength(50).IsRequired();
+            entity.Property(e => e.Detalle).HasColumnName("detalle");
+            entity.Property(e => e.Observaciones).HasColumnName("observaciones");
+
+            entity.HasOne(e => e.Proveedor).WithMany(p => p.Compras).HasForeignKey(e => e.ProveedorId);
+            entity.HasOne(e => e.Usuario).WithMany().HasForeignKey(e => e.UsuarioId);
+        });
+
+        modelBuilder.Entity<DetalleCompra>(entity =>
+        {
+            entity.ToTable("detalle_compra");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id").ValueGeneratedOnAdd();
+            entity.Property(e => e.CompraId).HasColumnName("compra_id").IsRequired();
+            entity.Property(e => e.ProductoId).HasColumnName("producto_id").IsRequired();
+            entity.Property(e => e.AlmacenId).HasColumnName("almacen_id").IsRequired();
+            entity.Property(e => e.Cantidad).HasColumnName("cantidad").IsRequired();
+            entity.Property(e => e.PrecioUnitarioCompra).HasColumnName("precio_unitario_compra").HasPrecision(12, 2).IsRequired();
+            entity.Property(e => e.Observaciones).HasColumnName("observaciones");
+
+            entity.HasOne(e => e.Compra).WithMany(c => c.DetalleCompras).HasForeignKey(e => e.CompraId);
+            entity.HasOne(e => e.Producto).WithMany().HasForeignKey(e => e.ProductoId);
+            entity.HasOne(e => e.Almacen).WithMany().HasForeignKey(e => e.AlmacenId);
+        });
+
+        modelBuilder.Entity<Productos>(entity =>
+        {
+            entity.ToTable("productos");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.Nombre).HasColumnName("nombre").IsRequired();
+            entity.Property(e => e.CodigoBarra).HasColumnName("codigo_barra");
+            entity.Property(e => e.UnidadMedida).HasColumnName("unidad_medida");
+            entity.Property(e => e.Marca).HasColumnName("marca");
+            entity.Property(e => e.Imagen).HasColumnName("imagen");
+            entity.Property(e => e.Descripcion).HasColumnName("descripcion");
+            entity.Property(e => e.PrecioVentaActual).HasColumnName("precio_venta_actual").HasPrecision(12, 2);
+            entity.Property(e => e.StockMinimo).HasColumnName("stock_minimo");
+            entity.Property(e => e.Estado).HasColumnName("estado");
+            entity.Property(e => e.FechaRegistro).HasColumnName("fecha_registro");
+            entity.Property(e => e.CategoriaId).HasColumnName("categoria_id");
+        });
+
+        modelBuilder.Entity<Almacenes>(entity =>
+        {
+            entity.ToTable("almacenes");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.Codigo).HasColumnName("codigo").HasMaxLength(100).IsRequired();
+            entity.Property(e => e.Nombre).HasColumnName("nombre").HasMaxLength(100).IsRequired();
+            entity.Property(e => e.Descripcion).HasColumnName("descripcion");
+            entity.Property(e => e.SucursalId).HasColumnName("sucursal_id").IsRequired();
+        });
+
+        modelBuilder.Entity<Inventario>(entity =>
+        {
+            entity.ToTable("inventarios");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id").ValueGeneratedOnAdd();
+            entity.Property(e => e.CantidadActual).HasColumnName("cantidad_actual").IsRequired();
+            entity.Property(e => e.FechaActualizacion).HasColumnName("fecha_actualizacion").IsRequired();
+            entity.Property(e => e.ProductoId).HasColumnName("producto_id").IsRequired();
+            entity.Property(e => e.AlmacenId).HasColumnName("almacen_id").IsRequired();
+            entity.HasOne(e => e.producto).WithMany().HasForeignKey(e => e.ProductoId);
+            entity.HasOne(e => e.almacen).WithMany().HasForeignKey(e => e.AlmacenId);
+            entity.HasIndex(e => new { e.ProductoId, e.AlmacenId }).IsUnique();
+        });
+
+        modelBuilder.Entity<Users>().Property(e => e.State).HasColumnName("state");
     }
 }

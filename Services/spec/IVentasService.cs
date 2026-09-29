@@ -7,7 +7,7 @@ public interface IVentasService
 {
     Task<IEnumerable<VentasResponse>> FindAllVentas();
 
-    Task<VentasDetailResponse> FindVentaById(int id);
+    Task<VentasDetailResponse?> FindVentaById(int id);
 
     Task<VentasResponse> CreateVenta(CreateVentaRequest createVentaRequest);
 

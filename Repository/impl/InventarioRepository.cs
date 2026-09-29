@@ -10,9 +10,15 @@ public class InventarioRepository(AppDbContext appDbContext) : IInventarioReposi
 {
     private readonly AppDbContext _context = appDbContext;
 
-    public async Task<Inventario> GetByProductoAndAlmacen(int productoId, int almacenId)
+    public async Task<Inventario?> GetByProductoAndAlmacen(int productoId, int almacenId)
     {
         return await _context.Inventarios.FirstOrDefaultAsync(i => i.ProductoId == productoId && i.AlmacenId == almacenId);
+    }
+
+    public async Task CreateInventario(Inventario inventario)
+    {
+        _context.Inventarios.Add(inventario);
+        await _context.SaveChangesAsync();
     }
 
     public async Task UpdateInventario(Inventario inventario)
