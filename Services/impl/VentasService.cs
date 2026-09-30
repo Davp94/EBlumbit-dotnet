@@ -2,6 +2,7 @@ using System;
 using EBlumbit.Builders;
 using EBlumbit.Data;
 using EBlumbit.Dto.Ventas;
+using EBlumbit.exceptions;
 using EBlumbit.Repository.spec;
 using EBlumbit.Services.spec;
 
@@ -25,7 +26,11 @@ public class VentasService(IVentaRepository ventaRepository, IInventarioReposito
     public async Task<VentasDetailResponse?> FindVentaById(int id)
     {
         var venta = await _ventasRepository.GetVentaById(id);
-        return venta == null ? null : VentasBuilder.ToDetailResponseDto(venta);
+        if(venta == null)
+        {
+            throw new ResourceNotFoundException("Venta no encontarada");
+        }
+        return VentasBuilder.ToDetailResponseDto(venta);
     }
 
     public async Task<VentasResponse> CreateVenta(CreateVentaRequest createVentaRequest)
