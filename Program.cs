@@ -2,6 +2,7 @@ using EBlumbit.Data;
 using EBlumbit.Repository;
 using EBlumbit.Services;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,6 +12,13 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(
         builder.Configuration.GetConnectionString("DefaultConnection")
     )
+);
+
+//Serilog
+builder.Host.UseSerilog((context, services, config) => 
+    config.ReadFrom.Configuration(context.Configuration)
+    .ReadFrom.Services(services)
+    .Enrich.FromLogContext()
 );
 
 builder.Services.AddScoped<UserRepository>();
