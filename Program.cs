@@ -1,5 +1,6 @@
 using EBlumbit.Data;
 using EBlumbit.Repository;
+using EBlumbit.Seeders;
 using EBlumbit.Services;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
@@ -25,6 +26,17 @@ builder.Services.AddScoped<UserRepository>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<PermissionRepository>();
 builder.Services.AddScoped<PermissionService>();
+builder.Services.AddScoped<PermisosSeeder>();
+builder.Services.AddScoped<RolSeeder>();
+builder.Services.AddScoped<UsuarioSeeder>();
+builder.Services.AddScoped<CategoriaSeeder>();
+builder.Services.AddScoped<SucursalSeeder>();
+builder.Services.AddScoped<AlmacenSeeder>();
+builder.Services.AddScoped<ProductoSeeder>();
+builder.Services.AddScoped<InventarioSeeder>();
+builder.Services.AddScoped<ClienteSeeder>();
+builder.Services.AddScoped<ProveedorSeeder>();
+builder.Services.AddScoped<DataSeeder>();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddControllers();
@@ -32,6 +44,12 @@ builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var dataSeeder = scope.ServiceProvider.GetRequiredService<DataSeeder>();
+    await dataSeeder.SeedAsync();
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
