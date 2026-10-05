@@ -30,4 +30,6 @@ public class Users
     public bool State { get; set; }
 
     public ICollection<RoleUser> RoleUsers { get; set; } = [];
+
+    public ICollection<RefreshToken> RefreshTokens { get; set; } = [];
 }

@@ -41,6 +41,8 @@ public class AppDbContext : DbContext
 
     public DbSet<Proveedor> Proveedores => Set<Proveedor>();
 
+    public  DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -223,5 +225,19 @@ public class AppDbContext : DbContext
         });
 
         modelBuilder.Entity<Users>().Property(e => e.State).HasColumnName("state");
+
+        modelBuilder.Entity<RefreshToken>(entity =>
+        {
+            entity.ToTable("refresh_tokens");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.Token).HasColumnName("token").IsRequired();
+            entity.Property(e => e.Created).HasColumnName("created").IsRequired();
+            entity.Property(e => e.Expires).HasColumnName("expires").IsRequired();
+            entity.Property(e => e.IsActive).HasColumnName("is_active").IsRequired();
+            entity.Property(e => e.UserId).HasColumnName("user_id").IsRequired();
+            entity.HasOne(e => e.User).WithMany().HasForeignKey(e => e.UserId);
+        });
+
     }
 }
