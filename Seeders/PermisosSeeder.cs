@@ -43,6 +43,14 @@ public class PermisosSeeder(AppDbContext context)
             Action = "leer",
             Detalle = "Permiso ejecutivo para ver informacion general de la app"
         });
+
+        permissions.Add(new Permission
+        {
+            Nombre = "admin:ventas",
+            Subject = "ventas",
+            Action = "administrar",
+            Detalle = "Permiso para realizar todas las operaciones en ventas"
+        });
         await _context.Permissions.AddRangeAsync(permissions);
         await _context.SaveChangesAsync();
     }

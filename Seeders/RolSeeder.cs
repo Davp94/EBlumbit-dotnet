@@ -24,7 +24,7 @@ public class RolSeeder(AppDbContext context)
         };
 
         var vendedorSubjects = new[]{"compras", "ventas",
-            "inventario", "clientes", "proveedores"};
+            "inventario", "clientes", "proveedores", "ventas"};
         var vendedorPermisos = permisos.Where(p => vendedorSubjects.Contains(p.Subject)).ToList();
         var vendedor = new Role
         {

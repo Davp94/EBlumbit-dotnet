@@ -1,5 +1,6 @@
 using EBlumbit.Dto.Ventas;
 using EBlumbit.Services.spec;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -7,6 +8,7 @@ namespace EBlumbit.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Policy = "admin:ventas")]
     public class VentasController(IVentasService ventasService) : ControllerBase
     {
         private readonly IVentasService _ventasService = ventasService;
