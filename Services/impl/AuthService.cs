@@ -5,6 +5,7 @@ using System.Text;
 using BCrypt.Net;
 using EBlumbit.Data;
 using EBlumbit.Dto.Auth;
+using EBlumbit.Models;
 using EBlumbit.Services.spec;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -30,6 +31,14 @@ public class AuthService(AppDbContext context, IConfiguration configuration) : I
         }
         var accessToken = GenerateAccessToken(usuario);
         var refreshToken = GenerateRefreshToken();
+        usuario.RefreshTokens.Add(new RefreshToken
+        {
+           Token = refreshToken,
+           Expires = DateTime.UtcNow.AddDays(_configuration.GetValue<int>("Jwt:RefreshTokenDurationInDays")),
+           IsActive = true,
+           UserId = usuario.Id
+        });
+        await _context.SaveChangesAsync();
         var roles = usuario.RoleUsers.Select(ru => ru.Role.Nombre).ToList();
         var permissions = usuario.RoleUsers.SelectMany(ru=>ru.Role.Permisos.Select(p=>p.Nombre)).ToList();
         var expiration = _configuration.GetValue<int>("Jwt:DurationInMinutes");
@@ -47,10 +56,47 @@ public class AuthService(AppDbContext context, IConfiguration configuration) : I
 
     public async Task<AuthResponse> RefreshToken(RefreshTokenRequest request)
     {
-        if(tokenValid)
+        var usuario = await _context.Users.Include(u=> u.RefreshTokens)
+        .FirstOrDefaultAsync(u=>u.RefreshTokens.Any(t=>t.Token == request.RefreshToken));
+
+        if(usuario == null)
         {
-            
-        } 
+            throw new InvalidOperationException("Token de actualización inválido");
+        }
+
+        var refreshToken = usuario.RefreshTokens.Single(t=>t.Token == request.RefreshToken);
+        if(!refreshToken.IsActive || refreshToken.Expires < DateTime.UtcNow)
+        {
+            throw new InvalidOperationException("Token de actualización inválido o expirado");
+        }
+
+        var newAccesToken = GenerateAccessToken(usuario);
+        var newRefreshToken = GenerateRefreshToken();
+
+        refreshToken.IsActive = false;
+        usuario.RefreshTokens.Add(new RefreshToken
+        {
+           Token = newRefreshToken,
+           Expires = DateTime.UtcNow.AddDays(_configuration.GetValue<int>("Jwt:RefreshTokenDurationInDays")),
+           IsActive = true,
+           UserId = usuario.Id
+        });
+        await _context.SaveChangesAsync();
+        var roles = usuario.RoleUsers.Select(ru => ru.Role.Nombre).ToList();
+        var permissions = usuario.RoleUsers.SelectMany(ru=>ru.Role.Permisos.Select(p=>p.Nombre)).ToList();
+        var expiration = _configuration.GetValue<int>("Jwt:DurationInMinutes");
+
+        return new AuthResponse
+        {
+            AccessToken = newAccesToken,
+            RefreshToken = newRefreshToken,
+            UsuarioId = usuario.Id,
+            ExpirationMinutes = expiration,
+            Email = usuario.Email,
+            Roles = roles,
+            Permissions = permissions
+        };
+
 
     }
 
