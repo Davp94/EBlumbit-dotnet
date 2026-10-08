@@ -42,4 +42,11 @@ public static class ProductosBuilder
             CategoriaId = productoRequest.CategoriaId
         };
     }
+
+    public static Productos ToEntityUpdate(ProductoRequestDto productoRequestDto, int id)
+    {
+        var producto = ToEntity(productoRequestDto);
+        producto.Id = id;
+        return producto;
+    }
 }
