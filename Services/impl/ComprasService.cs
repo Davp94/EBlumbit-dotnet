@@ -1,9 +1,13 @@
 using EBlumbit.Builders;
 using EBlumbit.Data;
 using EBlumbit.Dto.Compras;
+using EBlumbit.exceptions;
 using EBlumbit.Models;
 using EBlumbit.Repository.spec;
 using EBlumbit.Services.spec;
+using QuestPDF.Fluent;
+using QuestPDF.Helpers;
+using QuestPDF.Infrastructure;
 
 namespace EBlumbit.Services.impl;
 
@@ -115,5 +119,81 @@ public class ComprasService(ICompraRepository compraRepository, IInventarioRepos
             await transaction.RollbackAsync();
             throw;
         }
+    }
+
+    public async Task<byte[]> GenerateCompraReportPdf(int id)
+    {
+        var compra = await _compraRepository.GetCompraById(id);
+        var totalCompra = 0m;
+        if(compra == null)
+        {
+            throw new ResourceNotFoundException("Compra no encontrada");
+        }
+        QuestPDF.Settings.License = LicenseType.Community;
+        var document = Document.Create(container =>
+        {
+            container.Page(page => 
+            {
+               page.Size(PageSizes.Letter);
+               page.Margin(2, Unit.Centimetre);
+               page.PageColor(Colors.White);
+               page.DefaultTextStyle(x=>x.FontSize(12));
+               page.Header().Row(row =>
+               {
+                   row.RelativeItem().Column(column =>
+                   {
+                       column.Item().Text($"Compra - {compra.Codigo} ").SemiBold().FontSize(18).FontColor(Colors.Blue.Medium);
+                       column.Item().Text($"Fecha - {compra.Fecha:dd/MM/yyyy}");
+                       column.Item().Text($"Cliente - {compra.Proveedor.RazonSocial}");
+                   });
+               }); 
+               page.Content().PaddingVertical(2, Unit.Centimetre).Column(column =>
+               {
+                   column.Item().Table(table =>
+                   {
+                       table.ColumnsDefinition(columns =>
+                       {
+                           columns.RelativeColumn(3);
+                           columns.RelativeColumn();
+                           columns.RelativeColumn();
+                           columns.RelativeColumn();
+                       });
+                       table.Header(header =>
+                       {
+                           header.Cell().Element(CellStyle).Text("Producto");
+                           header.Cell().Element(CellStyle).Text("Cantidad");
+                           header.Cell().Element(CellStyle).Text("Precio");
+                           header.Cell().Element(CellStyle).Text("Total");
+                           static IContainer CellStyle(IContainer container)
+                           {
+                               return container.DefaultTextStyle(x=>x.SemiBold()).Padding(3).Border(1).BorderColor(Colors.Grey.Lighten2);
+                           }
+
+                       });
+                       foreach(var item in compra.DetalleCompras)
+                       {
+                            var totalItem = item.Cantidad * item.PrecioUnitarioCompra;
+                            totalCompra += totalItem;
+                            table.Cell().Element(CellStyle).Text(item.Producto.Nombre);
+                            table.Cell().Element(CellStyle).Text(item.Cantidad.ToString());
+                            table.Cell().Element(CellStyle).Text(item.PrecioUnitarioCompra.ToString());
+                            table.Cell().Element(CellStyle).Text(totalItem.ToString());
+                            static IContainer CellStyle(IContainer container)
+                            {
+                               return container.BorderBottom(1).BorderColor(Colors.Grey.Lighten2).PaddingVertical(3);
+                            }
+                       }
+                   });
+                   column.Item().AlignRight().Text($"TOTAL: {(totalCompra - compra.DescuentoTotal)}").SemiBold().FontSize(14);
+               });
+
+                page.Footer().AlignCenter().Text(x =>
+                {
+                    x.Span("Comprobante de venta!!!");
+                    x.Line("https://eblumbit.site").FontSize(10).FontColor(Colors.Grey.Lighten5);
+                });
+            });
+        });
+        return document.GeneratePdf();
     }
 }

@@ -12,4 +12,6 @@ public interface IVentasService
     Task<VentasResponse> CreateVenta(CreateVentaRequest createVentaRequest);
 
     Task AnularVenta(int id);
+
+    Task<byte[]> GenerateVentaReportPdf(int id);
 }

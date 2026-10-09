@@ -37,4 +37,11 @@ public class ComprasController(IComprasService comprasService) : ControllerBase
         await _comprasService.AnularCompra(id);
         return NoContent();
     }
+
+    [HttpGet("{id}/report")]
+    public async Task<ActionResult> GenerateComprasReport(int id)
+    {
+        var reportCompra = await _comprasService.GenerateCompraReportPdf(id);
+        return File(reportCompra, "application/pdf", $"compra_{id}_report.pdf");
+    }
 }

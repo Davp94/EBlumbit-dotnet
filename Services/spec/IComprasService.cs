@@ -8,4 +8,6 @@ public interface IComprasService
     Task<CompraDetailResponse?> FindCompraById(int id);
     Task<CompraResponse> CreateCompra(CreateCompraRequest request);
     Task AnularCompra(int id);
+
+    Task<byte[]> GenerateCompraReportPdf(int id);
 }

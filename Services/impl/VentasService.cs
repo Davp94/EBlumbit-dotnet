@@ -5,6 +5,9 @@ using EBlumbit.Dto.Ventas;
 using EBlumbit.exceptions;
 using EBlumbit.Repository.spec;
 using EBlumbit.Services.spec;
+using QuestPDF.Fluent;
+using QuestPDF.Helpers;
+using QuestPDF.Infrastructure;
 
 namespace EBlumbit.Services.impl;
 
@@ -115,4 +118,79 @@ public class VentasService(IVentaRepository ventaRepository, IInventarioReposito
         }
     }
 
+    public async Task<byte[]> GenerateVentaReportPdf(int id)
+    {
+        var venta = await _ventasRepository.GetVentaById(id);
+        var totalVenta = 0m;
+        if(venta == null)
+        {
+            throw new ResourceNotFoundException("Venta no encontrada");
+        }
+        QuestPDF.Settings.License = LicenseType.Community;
+        var document = Document.Create(container =>
+        {
+            container.Page(page => 
+            {
+               page.Size(PageSizes.Letter);
+               page.Margin(2, Unit.Centimetre);
+               page.PageColor(Colors.White);
+               page.DefaultTextStyle(x=>x.FontSize(12));
+               page.Header().Row(row =>
+               {
+                   row.RelativeItem().Column(column =>
+                   {
+                       column.Item().Text($"Venta - {venta.Codigo} ").SemiBold().FontSize(18).FontColor(Colors.Blue.Medium);
+                       column.Item().Text($"Fecha - {venta.Fecha:dd/MM/yyyy}");
+                       column.Item().Text($"Cliente - {venta.cliente.NombreCompleto}");
+                   });
+               }); 
+               page.Content().PaddingVertical(2, Unit.Centimetre).Column(column =>
+               {
+                   column.Item().Table(table =>
+                   {
+                       table.ColumnsDefinition(columns =>
+                       {
+                           columns.RelativeColumn(3);
+                           columns.RelativeColumn();
+                           columns.RelativeColumn();
+                           columns.RelativeColumn();
+                       });
+                       table.Header(header =>
+                       {
+                           header.Cell().Element(CellStyle).Text("Producto");
+                           header.Cell().Element(CellStyle).Text("Cantidad");
+                           header.Cell().Element(CellStyle).Text("Precio");
+                           header.Cell().Element(CellStyle).Text("Total");
+                           static IContainer CellStyle(IContainer container)
+                           {
+                               return container.DefaultTextStyle(x=>x.SemiBold()).Padding(3).Border(1).BorderColor(Colors.Grey.Lighten2);
+                           }
+
+                       });
+                       foreach(var item in venta.DetalleVentas)
+                       {
+                            var totalItem = item.Cantidad * item.PrecionUnitarioVenta;
+                            totalVenta = totalVenta + totalItem;
+                            table.Cell().Element(CellStyle).Text(item.Producto.Nombre);
+                            table.Cell().Element(CellStyle).Text(item.Cantidad.ToString());
+                            table.Cell().Element(CellStyle).Text(item.PrecionUnitarioVenta.ToString());
+                            table.Cell().Element(CellStyle).Text(totalItem.ToString());
+                            static IContainer CellStyle(IContainer container)
+                            {
+                               return container.BorderBottom(1).BorderColor(Colors.Grey.Lighten2).PaddingVertical(3);
+                            }
+                       }
+                   });
+                   column.Item().AlignRight().Text($"TOTAL: {(totalVenta - venta.DescuentoTotal)}").SemiBold().FontSize(14);
+               });
+
+                page.Footer().AlignCenter().Text(x =>
+                {
+                    x.Span("Gracias por su compra!");
+                    x.Line("https://eblumbit.site").FontSize(10).FontColor(Colors.Grey.Lighten5);
+                });
+            });
+        });
+        return document.GeneratePdf();
+    }
 }

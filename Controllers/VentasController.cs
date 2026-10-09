@@ -41,5 +41,12 @@ namespace EBlumbit.Controllers
             await _ventasService.AnularVenta(id);
             return NoContent();
         }
+
+        [HttpGet("{id}/report")]
+        public async Task<ActionResult> GenerateVentaReport(int id)
+        {
+            var reportVenta = await _ventasService.GenerateVentaReportPdf(id);
+            return File(reportVenta, "application/pdf", $"venta_{id}_report.pdf");
+        }
     }
 }
