@@ -34,7 +34,6 @@ public static class ProductosBuilder
             CodigoBarra = productoRequest.CodigoBarra,
             UnidadMedida = productoRequest.UnidadMedida,
             Marca = productoRequest.Marca,
-            Imagen = productoRequest.Imagen,
             Descripcion = productoRequest.Descripcion,
             PrecioVentaActual = productoRequest.PrecioVentaActual,
             StockMinimo = productoRequest.StockMinimo,

@@ -5,6 +5,7 @@ using EBlumbit.Repository;
 using EBlumbit.Seeders;
 using EBlumbit.Services;
 using EBlumbit.Services.impl;
+using EBlumbit.Services.spec;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -35,7 +36,7 @@ builder.Services.AddScoped<PermissionRepository>();
 //Services
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<PermissionService>();
-builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 //Seeders
 builder.Services.AddScoped<PermisosSeeder>();
 builder.Services.AddScoped<RolSeeder>();
