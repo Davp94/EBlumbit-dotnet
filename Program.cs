@@ -2,6 +2,8 @@ using System.Text;
 using EBlumbit.Authorization;
 using EBlumbit.Data;
 using EBlumbit.Repository;
+using EBlumbit.Repository.impl;
+using EBlumbit.Repository.spec;
 using EBlumbit.Seeders;
 using EBlumbit.Services;
 using EBlumbit.Services.impl;
@@ -32,11 +34,25 @@ builder.Host.UseSerilog((context, services, config) =>
 builder.Services.AddScoped<UserRepository>();
 
 builder.Services.AddScoped<PermissionRepository>();
+builder.Services.AddScoped<ICategoriaRepository, CategoriaRepository>();
+builder.Services.AddScoped<IClienteRepository, ClienteDapperRepository>();
+builder.Services.AddScoped<ICompraRepository, CompraRepository>();
+builder.Services.AddScoped<IInventarioRepository, InventarioRepository>();
+builder.Services.AddScoped<IProductoRepository, ProductoRepository>();
+builder.Services.AddScoped<IProveedorRepository, ProveedorDapperRepository>();
+builder.Services.AddScoped<IVentaRepository, VentaRepository>();
 
 //Services
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<PermissionService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<ICategoriaService, CategoriaService>();
+builder.Services.AddScoped<IClienteService, ClienteService>();
+builder.Services.AddScoped<IComprasService, ComprasService>();
+builder.Services.AddScoped<IFIleService, FileService>();
+builder.Services.AddScoped<IProductoService, ProductoService>();
+builder.Services.AddScoped<IProveedorService, ProveedorService>();
+builder.Services.AddScoped<IVentasService, VentasService>();
 //Seeders
 builder.Services.AddScoped<PermisosSeeder>();
 builder.Services.AddScoped<RolSeeder>();
