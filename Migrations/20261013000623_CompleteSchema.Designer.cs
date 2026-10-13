@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace EBlumbit.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20261006004923_CompleteSchema")]
+    [Migration("20261013000623_CompleteSchema")]
     partial class CompleteSchema
     {
         /// <inheritdoc />

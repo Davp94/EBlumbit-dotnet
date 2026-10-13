@@ -12,11 +12,6 @@ namespace EBlumbit.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.RenameColumn(
-                name: "State",
-                table: "users",
-                newName: "state");
-
             migrationBuilder.CreateTable(
                 name: "categorias",
                 columns: table => new
@@ -50,6 +45,100 @@ namespace EBlumbit.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "proveedores",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    razon_social = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
+                    nro_identificacion = table.Column<string>(type: "character varying(30)", maxLength: 30, nullable: true),
+                    contacto = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    telefono = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
+                    correo = table.Column<string>(type: "character varying(150)", maxLength: 150, nullable: true),
+                    observaciones = table.Column<string>(type: "text", nullable: true),
+                    estado = table.Column<bool>(type: "boolean", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_proveedores", x => x.id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "roles",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    nombre = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    descripcion = table.Column<string>(type: "text", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_roles", x => x.id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "sucursales",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    nombre = table.Column<string>(type: "varchar(100)", nullable: false),
+                    direccion = table.Column<string>(type: "varchar(255)", nullable: false),
+                    telefono = table.Column<string>(type: "varchar(20)", nullable: false),
+                    ciudad = table.Column<string>(type: "varchar(100)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_sucursales", x => x.id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "users",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    name = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    email = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
+                    password = table.Column<string>(type: "character varying(250)", maxLength: 250, nullable: false),
+                    state = table.Column<bool>(type: "boolean", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_users", x => x.id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "productos",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    nombre = table.Column<string>(type: "text", nullable: false),
+                    codigo_barra = table.Column<string>(type: "text", nullable: false),
+                    unidad_medida = table.Column<string>(type: "text", nullable: false),
+                    marca = table.Column<string>(type: "text", nullable: false),
+                    imagen = table.Column<string>(type: "text", nullable: false),
+                    descripcion = table.Column<string>(type: "text", nullable: false),
+                    precio_venta_actual = table.Column<decimal>(type: "numeric(12,2)", precision: 12, scale: 2, nullable: false),
+                    stock_minimo = table.Column<int>(type: "integer", nullable: false),
+                    estado = table.Column<bool>(type: "boolean", nullable: false),
+                    fecha_registro = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    categoria_id = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_productos", x => x.id);
+                    table.ForeignKey(
+                        name: "FK_productos_categorias_categoria_id",
+                        column: x => x.categoria_id,
+                        principalTable: "categorias",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "permissions",
                 columns: table => new
                 {
@@ -72,22 +161,57 @@ namespace EBlumbit.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "proveedores",
+                name: "almacenes",
                 columns: table => new
                 {
                     id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    razon_social = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
-                    nro_identificacion = table.Column<string>(type: "character varying(30)", maxLength: 30, nullable: true),
-                    contacto = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
-                    telefono = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
-                    correo = table.Column<string>(type: "character varying(150)", maxLength: 150, nullable: true),
-                    observaciones = table.Column<string>(type: "text", nullable: true),
-                    estado = table.Column<bool>(type: "boolean", nullable: true)
+                    codigo = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    nombre = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    descripcion = table.Column<string>(type: "text", nullable: true),
+                    sucursal_id = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_proveedores", x => x.id);
+                    table.PrimaryKey("PK_almacenes", x => x.id);
+                    table.ForeignKey(
+                        name: "FK_almacenes_sucursales_sucursal_id",
+                        column: x => x.sucursal_id,
+                        principalTable: "sucursales",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "compras",
+                columns: table => new
+                {
+                    id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    codigo = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    fecha = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    proveedor_id = table.Column<int>(type: "integer", nullable: false),
+                    user_id = table.Column<int>(type: "integer", nullable: false),
+                    descuento_total = table.Column<decimal>(type: "numeric(12,2)", precision: 12, scale: 2, nullable: true),
+                    estado = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    detalle = table.Column<string>(type: "text", nullable: true),
+                    observaciones = table.Column<string>(type: "text", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_compras", x => x.id);
+                    table.ForeignKey(
+                        name: "FK_compras_proveedores_proveedor_id",
+                        column: x => x.proveedor_id,
+                        principalTable: "proveedores",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_compras_users_user_id",
+                        column: x => x.user_id,
+                        principalTable: "users",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -120,46 +244,27 @@ namespace EBlumbit.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "sucursales",
+                name: "role_user",
                 columns: table => new
                 {
-                    id = table.Column<int>(type: "integer", nullable: false)
+                    Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    nombre = table.Column<string>(type: "varchar(100)", nullable: false),
-                    direccion = table.Column<string>(type: "varchar(255)", nullable: false),
-                    telefono = table.Column<string>(type: "varchar(20)", nullable: false),
-                    ciudad = table.Column<string>(type: "varchar(100)", nullable: false)
+                    role_id = table.Column<int>(type: "integer", nullable: false),
+                    user_id = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_sucursales", x => x.id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "productos",
-                columns: table => new
-                {
-                    id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    nombre = table.Column<string>(type: "text", nullable: false),
-                    codigo_barra = table.Column<string>(type: "text", nullable: false),
-                    unidad_medida = table.Column<string>(type: "text", nullable: false),
-                    marca = table.Column<string>(type: "text", nullable: false),
-                    imagen = table.Column<string>(type: "text", nullable: false),
-                    descripcion = table.Column<string>(type: "text", nullable: false),
-                    precio_venta_actual = table.Column<decimal>(type: "numeric(12,2)", precision: 12, scale: 2, nullable: false),
-                    stock_minimo = table.Column<int>(type: "integer", nullable: false),
-                    estado = table.Column<bool>(type: "boolean", nullable: false),
-                    fecha_registro = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    categoria_id = table.Column<int>(type: "integer", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_productos", x => x.id);
+                    table.PrimaryKey("PK_role_user", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_productos_categorias_categoria_id",
-                        column: x => x.categoria_id,
-                        principalTable: "categorias",
+                        name: "FK_role_user_roles_role_id",
+                        column: x => x.role_id,
+                        principalTable: "roles",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_role_user_users_user_id",
+                        column: x => x.user_id,
+                        principalTable: "users",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -223,55 +328,29 @@ namespace EBlumbit.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "compras",
+                name: "inventarios",
                 columns: table => new
                 {
                     id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    codigo = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
-                    fecha = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    proveedor_id = table.Column<int>(type: "integer", nullable: false),
-                    user_id = table.Column<int>(type: "integer", nullable: false),
-                    descuento_total = table.Column<decimal>(type: "numeric(12,2)", precision: 12, scale: 2, nullable: true),
-                    estado = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
-                    detalle = table.Column<string>(type: "text", nullable: true),
-                    observaciones = table.Column<string>(type: "text", nullable: true)
+                    cantidad_actual = table.Column<int>(type: "integer", nullable: false),
+                    fecha_actualizacion = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    producto_id = table.Column<int>(type: "integer", nullable: false),
+                    almacen_id = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_compras", x => x.id);
+                    table.PrimaryKey("PK_inventarios", x => x.id);
                     table.ForeignKey(
-                        name: "FK_compras_proveedores_proveedor_id",
-                        column: x => x.proveedor_id,
-                        principalTable: "proveedores",
+                        name: "FK_inventarios_almacenes_almacen_id",
+                        column: x => x.almacen_id,
+                        principalTable: "almacenes",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_compras_users_user_id",
-                        column: x => x.user_id,
-                        principalTable: "users",
-                        principalColumn: "id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "almacenes",
-                columns: table => new
-                {
-                    id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    codigo = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
-                    nombre = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
-                    descripcion = table.Column<string>(type: "text", nullable: true),
-                    sucursal_id = table.Column<int>(type: "integer", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_almacenes", x => x.id);
-                    table.ForeignKey(
-                        name: "FK_almacenes_sucursales_sucursal_id",
-                        column: x => x.sucursal_id,
-                        principalTable: "sucursales",
+                        name: "FK_inventarios_productos_producto_id",
+                        column: x => x.producto_id,
+                        principalTable: "productos",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -343,34 +422,6 @@ namespace EBlumbit.Migrations
                     table.ForeignKey(
                         name: "FK_DetalleVentas_productos_ProductoId",
                         column: x => x.ProductoId,
-                        principalTable: "productos",
-                        principalColumn: "id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "inventarios",
-                columns: table => new
-                {
-                    id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    cantidad_actual = table.Column<int>(type: "integer", nullable: false),
-                    fecha_actualizacion = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    producto_id = table.Column<int>(type: "integer", nullable: false),
-                    almacen_id = table.Column<int>(type: "integer", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_inventarios", x => x.id);
-                    table.ForeignKey(
-                        name: "FK_inventarios_almacenes_almacen_id",
-                        column: x => x.almacen_id,
-                        principalTable: "almacenes",
-                        principalColumn: "id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_inventarios_productos_producto_id",
-                        column: x => x.producto_id,
                         principalTable: "productos",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
@@ -469,6 +520,28 @@ namespace EBlumbit.Migrations
                 column: "UsersId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_role_user_role_id",
+                table: "role_user",
+                column: "role_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_role_user_user_id",
+                table: "role_user",
+                column: "user_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_users_email",
+                table: "users",
+                column: "email",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_users_name",
+                table: "users",
+                column: "name",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Ventas_ClienteId",
                 table: "Ventas",
                 column: "ClienteId");
@@ -498,6 +571,9 @@ namespace EBlumbit.Migrations
                 name: "refresh_tokens");
 
             migrationBuilder.DropTable(
+                name: "role_user");
+
+            migrationBuilder.DropTable(
                 name: "compras");
 
             migrationBuilder.DropTable(
@@ -519,15 +595,16 @@ namespace EBlumbit.Migrations
                 name: "Clientes");
 
             migrationBuilder.DropTable(
+                name: "users");
+
+            migrationBuilder.DropTable(
                 name: "sucursales");
 
             migrationBuilder.DropTable(
                 name: "categorias");
 
-            migrationBuilder.RenameColumn(
-                name: "state",
-                table: "users",
-                newName: "State");
+            migrationBuilder.DropTable(
+                name: "roles");
         }
     }
 }

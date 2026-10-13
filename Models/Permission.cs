@@ -30,4 +30,5 @@ public class Permission
     public string Action { get; set; } = string.Empty;
 
     public ICollection<PermissionRole> PermissionRoles { get; set; } = [];
+
 }

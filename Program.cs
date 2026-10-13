@@ -7,6 +7,7 @@ using EBlumbit.Services;
 using EBlumbit.Services.impl;
 using EBlumbit.Services.spec;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
@@ -69,7 +70,7 @@ builder.Services.AddAuthentication(options =>
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:key"]))
     };
 });
-
+builder.Services.AddSingleton<IAuthorizationHandler, PermissionHandler>();
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("leer:users", policy => policy.Requirements.Add(new PermissionRequirement("leer:users")));

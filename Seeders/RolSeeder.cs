@@ -19,8 +19,7 @@ public class RolSeeder(AppDbContext context)
         var admin = new Role
         {
             Nombre = "ADMIN",
-            Descripcion = "Rol administrador del sistema, acceso total",
-            Permisos = permisos
+            Descripcion = "Rol administrador del sistema, acceso total"
         };
 
         var vendedorSubjects = new[]{"compras", "ventas",
@@ -30,7 +29,6 @@ public class RolSeeder(AppDbContext context)
         {
             Nombre = "VENDEDOR",
             Descripcion = "vendedor que realiza operaciones de compras y ventas",
-            Permisos = vendedorPermisos
         };
 
         var rrhhSubjects = new[]{"users", "roles", "permissions"};
@@ -39,7 +37,6 @@ public class RolSeeder(AppDbContext context)
         {
             Nombre = "RRHH",
             Descripcion = "Usuario de recursos humanos que gestiona accesos",
-            Permisos = rrhhPermisos
         };
 
         await _context.Roles.AddRangeAsync(admin, vendedor, rrhh);

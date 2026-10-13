@@ -65,6 +65,14 @@ public class AppDbContext : DbContext
             entity.Property(e=>e.Descripcion).HasColumnName("descripcion");
         });
 
+        // modelBuilder.Entity<Role>().HasMany(p=>p.Permisos)
+        // .WithMany(r=>r.Roles)
+        // .UsingEntity(t=>t.ToTable("permission_role"));
+
+        // modelBuilder.Entity<Users>().HasMany(r=>r.Roles)
+        // .WithMany(u=>u.Users)
+        // .UsingEntity(t=>t.ToTable("role_user"));
+
         //RoleUser
         modelBuilder.Entity<RoleUser>(entity =>
         {

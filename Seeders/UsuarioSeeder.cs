@@ -1,6 +1,7 @@
 using System;
 using Bogus;
 using EBlumbit.Data;
+using BCrypt.Net;
 
 namespace EBlumbit.Seeders;
 
@@ -22,7 +23,7 @@ public class UsuarioSeeder(AppDbContext context)
             {
                 Email = faker.Internet.Email(username),
                 Name = username,
-                Password = "Password123*"
+                Password = BCrypt.Net.BCrypt.HashPassword("Password123*")
             }; 
             usuarios.Add(usuario);
         }

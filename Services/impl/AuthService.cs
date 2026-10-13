@@ -19,7 +19,8 @@ public class AuthService(AppDbContext context, IConfiguration configuration) : I
 
     public async Task<AuthResponse> Login(AuthRequest request)
     {
-        var usuario = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
+        var usuario = await _context.Users.Include(r => r.RoleUsers)
+            .ThenInclude(ro => ro.Role).FirstOrDefaultAsync(u => u.Email == request.Email);
 
         if(usuario == null || !BCrypt.Net.BCrypt.Verify(request.Password, usuario.Password))
         {
@@ -29,7 +30,13 @@ public class AuthService(AppDbContext context, IConfiguration configuration) : I
         {
             throw new InvalidOperationException("Usuario inactivo");
         }
-        var accessToken = GenerateAccessToken(usuario);
+       
+        var roles = usuario.RoleUsers.Select(ro => ro.Role.Nombre).ToList();
+        var rolesIds = usuario.RoleUsers.Select(ro => ro.Role.Id).ToList();
+        var permissionsList = await _context.PermissionRoles.Include(r=>r.Permission).Where(pr=>rolesIds.Contains(pr.Role.Id)).ToListAsync();
+        var permissions = permissionsList.Select(p=>p.Permission.Nombre).ToList();
+
+        var accessToken = GenerateAccessToken(usuario, permissions);
         var refreshToken = GenerateRefreshToken();
         usuario.RefreshTokens.Add(new RefreshToken
         {
@@ -39,19 +46,17 @@ public class AuthService(AppDbContext context, IConfiguration configuration) : I
            UserId = usuario.Id
         });
         await _context.SaveChangesAsync();
-        var roles = usuario.RoleUsers.Select(ru => ru.Role.Nombre).ToList();
-        var permissions = usuario.RoleUsers.SelectMany(ru=>ru.Role.Permisos.Select(p=>p.Nombre)).ToList();
         var expiration = _configuration.GetValue<int>("Jwt:DurationInMinutes");
         return new AuthResponse
-        {
-            AccessToken = accessToken,
-            RefreshToken = refreshToken,
-            UsuarioId = usuario.Id,
-            ExpirationMinutes = expiration,
-            Email = usuario.Email,
-            Roles = roles,
-            Permissions = permissions
-        };
+        (
+            accessToken,
+            refreshToken,
+            usuario.Id,
+            expiration,
+            usuario.Email,
+            roles,
+            permissions
+        );
     }
 
     public async Task<AuthResponse> RefreshToken(RefreshTokenRequest request)
@@ -70,7 +75,14 @@ public class AuthService(AppDbContext context, IConfiguration configuration) : I
             throw new InvalidOperationException("Token de actualización inválido o expirado");
         }
 
-        var newAccesToken = GenerateAccessToken(usuario);
+
+        var roles = usuario.RoleUsers.Select(ro => ro.Role.Nombre).ToList();
+        var rolesIds = usuario.RoleUsers.Select(ro => ro.Role.Id).ToList();
+        var permissionsList = await _context.PermissionRoles.Include(r=>r.Permission).Where(pr=>rolesIds.Contains(pr.Role.Id)).ToListAsync();
+        var permissions = permissionsList.Select(p=>p.Permission.Nombre).ToList();
+        var expiration = _configuration.GetValue<int>("Jwt:DurationInMinutes");
+
+        var newAccesToken = GenerateAccessToken(usuario, permissions);
         var newRefreshToken = GenerateRefreshToken();
 
         refreshToken.IsActive = false;
@@ -82,32 +94,33 @@ public class AuthService(AppDbContext context, IConfiguration configuration) : I
            UserId = usuario.Id
         });
         await _context.SaveChangesAsync();
-        var roles = usuario.RoleUsers.Select(ru => ru.Role.Nombre).ToList();
-        var permissions = usuario.RoleUsers.SelectMany(ru=>ru.Role.Permisos.Select(p=>p.Nombre)).ToList();
-        var expiration = _configuration.GetValue<int>("Jwt:DurationInMinutes");
 
         return new AuthResponse
-        {
-            AccessToken = newAccesToken,
-            RefreshToken = newRefreshToken,
-            UsuarioId = usuario.Id,
-            ExpirationMinutes = expiration,
-            Email = usuario.Email,
-            Roles = roles,
-            Permissions = permissions
-        };
+        (
+            newAccesToken,
+            newRefreshToken,
+            usuario.Id,
+            expiration,
+            usuario.Email,
+            roles,
+            permissions
+        );
 
 
     }
 
-    private string GenerateAccessToken(Users usuario)
+    private string GenerateAccessToken(Users usuario, List<string> permissions)
     {
         var claims = new List<Claim>
         {
             new Claim(ClaimTypes.NameIdentifier, usuario.Id.ToString()),
             new Claim(ClaimTypes.Name, usuario.Email),
-            new Claim("UsuarioId", usuario.Id.ToString())
+            new Claim("UsuarioId", usuario.Id.ToString()),
         };
+        foreach(var permission in permissions)
+        {
+            claims.Add(new Claim("Permission", permission));
+        }
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
         var cred = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);

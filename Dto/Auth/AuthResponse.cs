@@ -1,19 +1,12 @@
 namespace EBlumbit.Dto.Auth;
 
-public record class AuthResponse
-{
-    public string AccessToken;
-
-    public string RefreshToken;
-
-    public int UsuarioId;
-
-    public int ExpirationMinutes;
-
-    //----------------------------
-
-    public string Email;
-    public List<string> Roles;
-
-    public List<string> Permissions;
-}
+public record AuthResponse
+(
+    string AccessToken,
+    string RefreshToken,
+    int UsuarioId,
+    int ExpirationMinutes,
+    string Email,
+    List<string> Roles,
+    List<string> Permissions
+);

@@ -14,5 +14,4 @@ public class Role
 
     public ICollection<PermissionRole> PermissionRoles { get; set; } = [];
 
-    public ICollection<Permission> Permisos { get; set; } = [];
 }

@@ -2,8 +2,8 @@ using System.ComponentModel.DataAnnotations;
 
 namespace EBlumbit.Dto.Auth;
 
-public record class RefreshTokenRequest
-{
+public record RefreshTokenRequest
+(
     [Required]
-    public string RefreshToken;
-}
+    string RefreshToken
+);

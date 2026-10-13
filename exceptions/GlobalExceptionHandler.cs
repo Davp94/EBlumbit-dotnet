@@ -18,6 +18,7 @@ public class GlobalExceptionHandler(ILogger logger) : IExceptionHandler
           DomainException d => (d.StatusCode, d.ErrorCode),  
           KeyNotFoundException => (400, "Recurso no encontrado"),
           ValidationException => (400, "Error de validacion"),
+          InvalidOperationException => (400, "Error de consulta"),
           ArgumentException => (400, "Error de request data"),
           _=> (500, "Error interno de servidor")  
         };

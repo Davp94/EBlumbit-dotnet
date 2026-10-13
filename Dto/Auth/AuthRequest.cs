@@ -2,12 +2,11 @@ using System.ComponentModel.DataAnnotations;
 
 namespace EBlumbit.Dto.Auth;
 
-public record class AuthRequest
-{
+public record AuthRequest
+(
     [Required]  
     [EmailAddress]
-    public string Email;  
-
+    string Email,  
     [Required]
-    public string Password;
-}
+    string Password  
+);
