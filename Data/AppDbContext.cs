@@ -244,7 +244,7 @@ public class AppDbContext : DbContext
             entity.Property(e => e.Expires).HasColumnName("expires").IsRequired();
             entity.Property(e => e.IsActive).HasColumnName("is_active").IsRequired();
             entity.Property(e => e.UserId).HasColumnName("user_id").IsRequired();
-            entity.HasOne(e => e.User).WithMany().HasForeignKey(e => e.UserId);
+            entity.HasOne(e => e.User).WithMany(u => u.RefreshTokens).HasForeignKey(e => e.UserId);
         });
 
     }

@@ -17,6 +17,14 @@ public class Users
     [Column("name")]
     public string Name { get; set; }
 
+    [MaxLength(200)]
+    [Column("nombres")]
+    public string? Nombres { get; set; }
+
+    [MaxLength(200)]
+    [Column("apellidos")]
+    public string? Apellidos { get; set; }
+
     [Required]
     [MaxLength(200)]
     [Column("email")]

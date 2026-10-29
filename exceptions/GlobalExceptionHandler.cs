@@ -6,10 +6,10 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace EBlumbit.exceptions;
 
-public class GlobalExceptionHandler(ILogger logger) : IExceptionHandler
+public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IExceptionHandler
 {
 
-    private readonly ILogger _logger = logger;
+    private readonly ILogger<GlobalExceptionHandler> _logger = logger;
 
     public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
     {
@@ -32,6 +32,7 @@ public class GlobalExceptionHandler(ILogger logger) : IExceptionHandler
         };
         problem.Extensions["traceId"] = httpContext.TraceIdentifier;
         _logger.LogError("Logging Exception {exception}", exception);
+        httpContext.Response.StatusCode = status;
         await httpContext.Response.WriteAsJsonAsync(problem);
         return true;
     }

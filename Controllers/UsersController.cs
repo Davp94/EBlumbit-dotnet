@@ -1,12 +1,17 @@
+using EBlumbit.Dto.Users;
+using EBlumbit.exceptions;
 using EBlumbit.Services;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EBlumbit.Controllers
 {
+    // Rutas validas para ambos frontends: /usuarios (Angular) y /api/usuarios (React).
     [Authorize]
-    [Route("api/[controller]")] // /api/users
+    [Route("api/usuarios")]
+    [Route("usuarios")]
+    [Route("api/users")]
+    [Route("users")]
     [ApiController]
     public class UsersController(UserService userService) : ControllerBase
     {
@@ -14,32 +19,49 @@ namespace EBlumbit.Controllers
 
         [HttpGet]
         [Authorize(Policy = "leer:users")]
-        public async Task<ActionResult<ICollection<Users>>> GetAllUsers()
+        public async Task<ActionResult<ICollection<UserResponseDto>>> GetAllUsers()
         {
-            return Ok(_userService.GetAllUsers().Result.ToList());
+            var users = await _userService.GetAllUsers();
+            return Ok(users.ToList());
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<Users>> GetUserById(int id)
+        [Authorize(Policy = "leer:users")]
+        public async Task<ActionResult<UserResponseDto>> GetUserById(int id)
         {
-            return Ok(_userService.GetUserById(id).Result);
+            var user = await _userService.GetUserById(id);
+            if (user == null) throw new ResourceNotFoundException($"Usuario con id {id} no encontrado");
+            return Ok(user);
         }
 
         [HttpPost]
         [Authorize(Policy = "crear:users")]
-        public async Task<ActionResult<Users>> CreateUser([FromBody]Users user)
+        public async Task<ActionResult<UserResponseDto>> CreateUser([FromBody] UserRequestDto request)
         {
-            return Created("",_userService.CreateUser(user).Result);
+            var created = await _userService.CreateUser(request);
+            return Created("", created);
         }
 
-        [HttpPut]
-        public async Task<IActionResult> UpdateUser([FromBody] Users user)
+        [HttpPut("{id}")]
+        [Authorize(Policy = "actualizar:users")]
+        public async Task<ActionResult<UserResponseDto>> UpdateUser(int id, [FromBody] UserRequestDto request)
         {
-            await _userService.UpdateUser(user);
-            return NoContent();
+            var updated = await _userService.UpdateUser(id, request);
+            return Ok(updated);
+        }
+
+        // Alias legado: el id viaja en el body.
+        [HttpPut]
+        [Authorize(Policy = "actualizar:users")]
+        public async Task<ActionResult<UserResponseDto>> UpdateUserFromBody([FromBody] UserRequestDto request)
+        {
+            if (request.Id == null) throw new BusinessRuleException("El id del usuario es obligatorio");
+            var updated = await _userService.UpdateUser(request.Id.Value, request);
+            return Ok(updated);
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Policy = "eliminar:users")]
         public async Task<IActionResult> DeleteUser(int id)
         {
             await _userService.DeleteUsuario(id);
@@ -47,6 +69,7 @@ namespace EBlumbit.Controllers
         }
 
         [HttpPatch("{id}")]
+        [Authorize(Policy = "eliminar:users")]
         public async Task<IActionResult> LogicalDeleteUser(int id)
         {
             await _userService.LogicalDeleteUsuario(id);

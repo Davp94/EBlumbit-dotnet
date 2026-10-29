@@ -1,10 +1,12 @@
 using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using BCrypt.Net;
 using EBlumbit.Data;
 using EBlumbit.Dto.Auth;
+using EBlumbit.exceptions;
 using EBlumbit.Models;
 using EBlumbit.Services.spec;
 using Microsoft.EntityFrameworkCore;
@@ -19,32 +21,40 @@ public class AuthService(AppDbContext context, IConfiguration configuration) : I
 
     public async Task<AuthResponse> Login(AuthRequest request)
     {
-        var usuario = await _context.Users.Include(r => r.RoleUsers)
-            .ThenInclude(ro => ro.Role).FirstOrDefaultAsync(u => u.Email == request.Email);
+        if (request == null || string.IsNullOrWhiteSpace(request.Password)
+            || (string.IsNullOrWhiteSpace(request.Email) && string.IsNullOrWhiteSpace(request.Username)))
+        {
+            throw new AuthenticationException("Credenciales inválidas");
+        }
+
+        var email = request.Email?.Trim();
+        var username = request.Username?.Trim();
+
+        var query = _context.Users
+            .Include(r => r.RoleUsers).ThenInclude(ro => ro.Role)
+            .AsQueryable();
+
+        var usuario = !string.IsNullOrWhiteSpace(email)
+            ? await query.FirstOrDefaultAsync(u => u.Email.ToLower() == email.ToLower())
+            : await query.FirstOrDefaultAsync(u => u.Name == username);
 
         if(usuario == null || !BCrypt.Net.BCrypt.Verify(request.Password, usuario.Password))
         {
-            throw new InvalidOperationException("Credenciales inválidas");
+            throw new AuthenticationException("Credenciales inválidas");
         }
         if(!usuario.State)
         {
-            throw new InvalidOperationException("Usuario inactivo");
+            throw new AuthenticationException("Usuario inactivo");
         }
        
-        var roles = usuario.RoleUsers.Select(ro => ro.Role.Nombre).ToList();
+        var roles = usuario.RoleUsers.Select(ro => ro.Role.Nombre).Distinct().ToList();
         var rolesIds = usuario.RoleUsers.Select(ro => ro.Role.Id).ToList();
         var permissionsList = await _context.PermissionRoles.Include(r=>r.Permission).Where(pr=>rolesIds.Contains(pr.Role.Id)).ToListAsync();
-        var permissions = permissionsList.Select(p=>p.Permission.Nombre).ToList();
+        var permissions = permissionsList.Select(p=>p.Permission.Nombre).Distinct().ToList();
 
         var accessToken = GenerateAccessToken(usuario, permissions);
         var refreshToken = GenerateRefreshToken();
-        usuario.RefreshTokens.Add(new RefreshToken
-        {
-           Token = refreshToken,
-           Expires = DateTime.UtcNow.AddDays(_configuration.GetValue<int>("Jwt:RefreshTokenDurationInDays")),
-           IsActive = true,
-           UserId = usuario.Id
-        });
+        usuario.RefreshTokens.Add(BuildRefreshToken(usuario.Id, refreshToken));
         await _context.SaveChangesAsync();
         var expiration = _configuration.GetValue<int>("Jwt:DurationInMinutes");
         return new AuthResponse
@@ -55,44 +65,51 @@ public class AuthService(AppDbContext context, IConfiguration configuration) : I
             expiration,
             usuario.Email,
             roles,
-            permissions
+            permissions,
+            usuario.Id,
+            expiration * 60_000L
         );
     }
 
     public async Task<AuthResponse> RefreshToken(RefreshTokenRequest request)
     {
-        var usuario = await _context.Users.Include(u=> u.RefreshTokens)
-        .FirstOrDefaultAsync(u=>u.RefreshTokens.Any(t=>t.Token == request.RefreshToken));
+        if (request == null || string.IsNullOrWhiteSpace(request.RefreshToken))
+        {
+            throw new AuthenticationException("Token de actualización inválido");
+        }
+
+        var usuario = await _context.Users
+            .Include(u => u.RefreshTokens)
+            .Include(u => u.RoleUsers).ThenInclude(ro => ro.Role)
+            .FirstOrDefaultAsync(u=>u.RefreshTokens.Any(t=>t.Token == request.RefreshToken));
 
         if(usuario == null)
         {
-            throw new InvalidOperationException("Token de actualización inválido");
+            throw new AuthenticationException("Token de actualización inválido");
         }
 
         var refreshToken = usuario.RefreshTokens.Single(t=>t.Token == request.RefreshToken);
         if(!refreshToken.IsActive || refreshToken.Expires < DateTime.UtcNow)
         {
-            throw new InvalidOperationException("Token de actualización inválido o expirado");
+            throw new AuthenticationException("Token de actualización inválido o expirado");
         }
 
+        if(!usuario.State)
+        {
+            throw new AuthenticationException("Usuario inactivo");
+        }
 
-        var roles = usuario.RoleUsers.Select(ro => ro.Role.Nombre).ToList();
+        var roles = usuario.RoleUsers.Select(ro => ro.Role.Nombre).Distinct().ToList();
         var rolesIds = usuario.RoleUsers.Select(ro => ro.Role.Id).ToList();
         var permissionsList = await _context.PermissionRoles.Include(r=>r.Permission).Where(pr=>rolesIds.Contains(pr.Role.Id)).ToListAsync();
-        var permissions = permissionsList.Select(p=>p.Permission.Nombre).ToList();
+        var permissions = permissionsList.Select(p=>p.Permission.Nombre).Distinct().ToList();
         var expiration = _configuration.GetValue<int>("Jwt:DurationInMinutes");
 
         var newAccesToken = GenerateAccessToken(usuario, permissions);
         var newRefreshToken = GenerateRefreshToken();
 
         refreshToken.IsActive = false;
-        usuario.RefreshTokens.Add(new RefreshToken
-        {
-           Token = newRefreshToken,
-           Expires = DateTime.UtcNow.AddDays(_configuration.GetValue<int>("Jwt:RefreshTokenDurationInDays")),
-           IsActive = true,
-           UserId = usuario.Id
-        });
+        usuario.RefreshTokens.Add(BuildRefreshToken(usuario.Id, newRefreshToken));
         await _context.SaveChangesAsync();
 
         return new AuthResponse
@@ -103,10 +120,24 @@ public class AuthService(AppDbContext context, IConfiguration configuration) : I
             expiration,
             usuario.Email,
             roles,
-            permissions
+            permissions,
+            usuario.Id,
+            expiration * 60_000L
         );
 
 
+    }
+
+    private RefreshToken BuildRefreshToken(int userId, string token)
+    {
+        return new RefreshToken
+        {
+            Token = token,
+            Created = DateTime.UtcNow,
+            Expires = DateTime.UtcNow.AddDays(_configuration.GetValue<int>("Jwt:RefreshTokenDurationInDays")),
+            IsActive = true,
+            UserId = userId
+        };
     }
 
     private string GenerateAccessToken(Users usuario, List<string> permissions)
@@ -139,7 +170,8 @@ public class AuthService(AppDbContext context, IConfiguration configuration) : I
 
     public string GenerateRefreshToken()
     {
-        var randomNumber = new byte[64]; 
+        var randomNumber = new byte[64];
+        RandomNumberGenerator.Fill(randomNumber);
         return Convert.ToBase64String(randomNumber);
     }
 }

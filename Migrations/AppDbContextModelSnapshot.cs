@@ -318,9 +318,6 @@ namespace EBlumbit.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("nombre");
 
-                    b.Property<int?>("RoleId")
-                        .HasColumnType("integer");
-
                     b.Property<string>("Subject")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -328,8 +325,6 @@ namespace EBlumbit.Migrations
                         .HasColumnName("subject");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("RoleId");
 
                     b.ToTable("permissions", (string)null);
                 });
@@ -507,14 +502,9 @@ namespace EBlumbit.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("user_id");
 
-                    b.Property<int?>("UsersId")
-                        .HasColumnType("integer");
-
                     b.HasKey("Id");
 
                     b.HasIndex("UserId");
-
-                    b.HasIndex("UsersId");
 
                     b.ToTable("refresh_tokens", (string)null);
                 });
@@ -654,6 +644,11 @@ namespace EBlumbit.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("Apellidos")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("apellidos");
+
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -665,6 +660,11 @@ namespace EBlumbit.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)")
                         .HasColumnName("name");
+
+                    b.Property<string>("Nombres")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("nombres");
 
                     b.Property<string>("Password")
                         .IsRequired()
@@ -790,13 +790,6 @@ namespace EBlumbit.Migrations
                     b.Navigation("producto");
                 });
 
-            modelBuilder.Entity("EBlumbit.Models.Permission", b =>
-                {
-                    b.HasOne("EBlumbit.Models.Role", null)
-                        .WithMany("Permisos")
-                        .HasForeignKey("RoleId");
-                });
-
             modelBuilder.Entity("EBlumbit.Models.PermissionRole", b =>
                 {
                     b.HasOne("EBlumbit.Models.Permission", "Permission")
@@ -830,14 +823,10 @@ namespace EBlumbit.Migrations
             modelBuilder.Entity("EBlumbit.Models.RefreshToken", b =>
                 {
                     b.HasOne("EBlumbit.Users", "User")
-                        .WithMany()
+                        .WithMany("RefreshTokens")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.HasOne("EBlumbit.Users", null)
-                        .WithMany("RefreshTokens")
-                        .HasForeignKey("UsersId");
 
                     b.Navigation("User");
                 });
@@ -902,8 +891,6 @@ namespace EBlumbit.Migrations
 
             modelBuilder.Entity("EBlumbit.Models.Role", b =>
                 {
-                    b.Navigation("Permisos");
-
                     b.Navigation("PermissionRoles");
 
                     b.Navigation("RoleUsers");
