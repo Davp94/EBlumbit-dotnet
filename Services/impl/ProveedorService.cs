@@ -21,7 +21,7 @@ public class ProveedorService(IProveedorRepository proveedorRepository) : IProve
         var proveedor = await _proveedorRepository.GetProveedorById(id);
         if (proveedor == null)
         {
-            throw new ResourceNotFoundException("Proveedor no encontrado");
+            throw new ResourceNotFoundException($"Proveedor con id {id} no encontrado");
         }
         return ProveedoresBuilder.ToResponseDto(proveedor);
     }
@@ -37,7 +37,7 @@ public class ProveedorService(IProveedorRepository proveedorRepository) : IProve
         var proveedor = await _proveedorRepository.GetProveedorById(id);
         if (proveedor == null)
         {
-            throw new ResourceNotFoundException("Proveedor no encontrado");
+            throw new ResourceNotFoundException($"Proveedor con id {id} no encontrado");
         }
 
         await _proveedorRepository.UpdateProveedor(ProveedoresBuilder.ToEntityUpdate(requestDto, proveedor));
@@ -50,7 +50,7 @@ public class ProveedorService(IProveedorRepository proveedorRepository) : IProve
         var proveedor = await _proveedorRepository.GetProveedorById(id);
         if (proveedor == null)
         {
-            throw new ResourceNotFoundException("Proveedor no encontrado");
+            throw new ResourceNotFoundException($"Proveedor con id {id} no encontrado");
         }
         await _proveedorRepository.DeleteProveedor(id);
     }

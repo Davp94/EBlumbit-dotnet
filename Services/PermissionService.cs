@@ -1,4 +1,4 @@
-using System;
+using EBlumbit.Dto.Permissions;
 using EBlumbit.Models;
 using EBlumbit.Repository;
 
@@ -8,28 +8,63 @@ public class PermissionService(PermissionRepository permissionRepository)
 {
     private readonly PermissionRepository _permissionRepository = permissionRepository;
 
-    public async Task<IEnumerable<Permission>> GetAllPermissions()
+    public async Task<IEnumerable<PermissionResponseDto>> GetAllPermissions()
     {
-        return await _permissionRepository.GetAllPermissionsAsync();
+        var permissions = await _permissionRepository.GetAllPermissionsAsync();
+        return permissions.Select(ToResponseDto);
     }
 
-    public async Task<Permission?> GetPermissionById(int id)
+    public async Task<PermissionResponseDto?> GetPermissionById(int id)
     {
-        return await _permissionRepository.GetPermissionByIdAsync(id);
+        var permission = await _permissionRepository.GetPermissionByIdAsync(id);
+        return permission == null ? null : ToResponseDto(permission);
     }
 
-    public async Task<Permission> CreatePermission(Permission permission)
+    public async Task<PermissionResponseDto> CreatePermission(PermissionRequestDto request)
     {
-        return await _permissionRepository.CreatePermissionAsync(permission);
+        var created = await _permissionRepository.CreatePermissionAsync(ToEntity(request));
+        return ToResponseDto(created);
     }
 
-    public async Task<Permission> UpdatePermission(Permission permission)
+    public async Task<PermissionResponseDto> UpdatePermission(int id, PermissionRequestDto request)
     {
-        return await _permissionRepository.UpdatePermissionAsync(permission);
+        var permission = await _permissionRepository.GetPermissionByIdAsync(id)
+            ?? throw new exceptions.ResourceNotFoundException($"Permiso con id {id} no encontrado");
+
+        permission.Nombre = request.Nombre;
+        permission.Detalle = request.ResolveDetalle();
+        permission.Subject = request.Subject;
+        permission.Action = request.Action;
+
+        var updated = await _permissionRepository.UpdatePermissionAsync(permission);
+        return ToResponseDto(updated);
     }
 
     public async Task DeletePermission(int id)
     {
         await _permissionRepository.DeleteAsync(id);
+    }
+
+    private static Permission ToEntity(PermissionRequestDto request)
+    {
+        return new Permission
+        {
+            Nombre = request.Nombre,
+            Detalle = request.ResolveDetalle(),
+            Subject = request.Subject,
+            Action = request.Action
+        };
+    }
+
+    private static PermissionResponseDto ToResponseDto(Permission permission)
+    {
+        return new PermissionResponseDto
+        {
+            Id = permission.Id,
+            Nombre = permission.Nombre,
+            Detalle = permission.Detalle,
+            Subject = permission.Subject,
+            Action = permission.Action
+        };
     }
 }

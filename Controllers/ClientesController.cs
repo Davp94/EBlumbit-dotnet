@@ -1,10 +1,13 @@
 using EBlumbit.Dto.Clientes;
+using EBlumbit.exceptions;
 using EBlumbit.Services.spec;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EBlumbit.Controllers;
 
-[Route("api/[controller]")]
+[Authorize]
+[Route("api/clientes")]
 [ApiController]
 public class ClientesController(IClienteService clienteService) : ControllerBase
 {
@@ -21,7 +24,7 @@ public class ClientesController(IClienteService clienteService) : ControllerBase
     public async Task<ActionResult<ClienteResponseDto>> GetClienteById(int id)
     {
         var cliente = await _clienteService.GetClienteById(id);
-        if (cliente == null) return NotFound();
+        if (cliente == null) throw new ResourceNotFoundException($"Cliente con id {id} no encontrado");
         return Ok(cliente);
     }
 

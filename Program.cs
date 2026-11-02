@@ -35,6 +35,8 @@ builder.Host.UseSerilog((context, services, config) =>
 
 //repositories
 builder.Services.AddScoped<UserRepository>();
+builder.Services.AddScoped<SucursalRepository>();
+builder.Services.AddScoped<AlmacenRepository>();
 
 builder.Services.AddScoped<PermissionRepository>();
 builder.Services.AddScoped<ICategoriaRepository, CategoriaRepository>();
@@ -47,6 +49,8 @@ builder.Services.AddScoped<IVentaRepository, VentaRepository>();
 
 //Services
 builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<SucursalService>();
+builder.Services.AddScoped<AlmacenService>();
 builder.Services.AddScoped<PermissionService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ICategoriaService, CategoriaService>();
@@ -134,6 +138,35 @@ builder.Services.AddAuthorization(options =>
 });
 
 builder.Services.AddControllers();
+builder.Services.Configure<ApiBehaviorOptions>(options =>
+{
+    // Mismo envelope que el resto de errores (ProblemDetails) para fallos de validacion.
+    options.InvalidModelStateResponseFactory = context =>
+    {
+        var messages = context.ModelState
+            .Where(entry => entry.Value != null && entry.Value.Errors.Count > 0)
+            .SelectMany(entry => entry.Value!.Errors.Select(error => new
+            {
+                Field = ToCamelCase(entry.Key),
+                Message = string.IsNullOrWhiteSpace(error.ErrorMessage)
+                    ? "Valor invalido"
+                    : error.ErrorMessage
+            }))
+            .Select(item => string.IsNullOrEmpty(item.Field) ? item.Message : $"{item.Field}: {item.Message}")
+            .OrderBy(message => message, StringComparer.Ordinal)
+            .ToList();
+
+        var problem = new ProblemDetails
+        {
+            Status = StatusCodes.Status400BadRequest,
+            Title = "Error de validacion",
+            Detail = string.Join("; ", messages),
+            Instance = context.HttpContext.Request.Path
+        };
+        problem.Extensions["traceId"] = context.HttpContext.TraceIdentifier;
+        return new BadRequestObjectResult(problem);
+    };
+});
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 
@@ -187,3 +220,12 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+static string ToCamelCase(string value)
+{
+    if (string.IsNullOrEmpty(value))
+    {
+        return value;
+    }
+    return char.ToLowerInvariant(value[0]) + value[1..];
+}

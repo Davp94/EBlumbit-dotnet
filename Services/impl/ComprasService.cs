@@ -35,12 +35,12 @@ public class ComprasService(ICompraRepository compraRepository, IInventarioRepos
     {
         if (request.DetalleCompra == null || request.DetalleCompra.Count == 0)
         {
-            throw new ArgumentException("La compra debe incluir al menos un producto.");
+            throw new BusinessRuleException("La compra debe incluir al menos un producto.");
         }
 
         if (request.DetalleCompra.Any(d => d.Cantidad <= 0 || d.PrecioUnitarioCompra < 0))
         {
-            throw new ArgumentException("Las cantidades deben ser mayores a cero y los precios no pueden ser negativos.");
+            throw new BusinessRuleException("Las cantidades deben ser mayores a cero y los precios no pueden ser negativos.");
         }
 
         await using var transaction = await _context.Database.BeginTransactionAsync();
@@ -89,12 +89,12 @@ public class ComprasService(ICompraRepository compraRepository, IInventarioRepos
             var compra = await _compraRepository.GetCompraById(id);
             if (compra == null)
             {
-                throw new KeyNotFoundException($"Compra con Id {id} no encontrada.");
+                throw new ResourceNotFoundException($"Compra con id {id} no encontrado");
             }
 
             if (compra.Estado != EstadoRecibida)
             {
-                throw new InvalidOperationException("Solo se pueden anular compras recibidas.");
+                throw new BusinessRuleException("Solo se pueden anular compras recibidas.");
             }
 
             foreach (var detalle in compra.DetalleCompras)
@@ -102,7 +102,7 @@ public class ComprasService(ICompraRepository compraRepository, IInventarioRepos
                 var inventario = await _inventarioRepository.GetByProductoAndAlmacen(detalle.ProductoId, detalle.AlmacenId);
                 if (inventario == null || inventario.CantidadActual < detalle.Cantidad)
                 {
-                    throw new InvalidOperationException($"No se puede anular la compra: stock insuficiente para el producto {detalle.ProductoId} en el almacen {detalle.AlmacenId}.");
+                    throw new BusinessRuleException($"No se puede anular la compra: stock insuficiente para el producto {detalle.ProductoId} en el almacen {detalle.AlmacenId}.");
                 }
 
                 inventario.CantidadActual -= detalle.Cantidad;
@@ -127,7 +127,7 @@ public class ComprasService(ICompraRepository compraRepository, IInventarioRepos
         var totalCompra = 0m;
         if(compra == null)
         {
-            throw new ResourceNotFoundException("Compra no encontrada");
+            throw new ResourceNotFoundException($"Compra con id {id} no encontrado");
         }
         QuestPDF.Settings.License = LicenseType.Community;
         var document = Document.Create(container =>

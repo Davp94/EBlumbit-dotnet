@@ -33,7 +33,7 @@ public class VentasService(IVentaRepository ventaRepository, IInventarioReposito
         var venta = await _ventasRepository.GetVentaById(id);
         if(venta == null)
         {
-            throw new ResourceNotFoundException("Venta no encontarada");
+            throw new ResourceNotFoundException($"Venta con id {id} no encontrado");
         }
         return VentasBuilder.ToDetailResponseDto(venta);
     }
@@ -43,7 +43,7 @@ public class VentasService(IVentaRepository ventaRepository, IInventarioReposito
         _logger.LogInformation("Create Venta Request {createVentaRequest}", createVentaRequest);
         if(createVentaRequest == null || createVentaRequest.DetalleVenta == null || !createVentaRequest.DetalleVenta.Any())
         {
-            throw new ArgumentException("La venta debe incluir al menos un producto");
+            throw new BusinessRuleException("La venta debe incluir al menos un producto");
         }
 
         using var transaction = await _context.Database.BeginTransactionAsync();
@@ -55,7 +55,7 @@ public class VentasService(IVentaRepository ventaRepository, IInventarioReposito
                 var inventario = await _inventarioRepository.GetByProductoAndAlmacen(detalle.ProductoId, detalle.AlmacenId);
                 if(inventario == null || inventario.CantidadActual < detalle.Cantidad)
                 {
-                    throw new InvalidOperationException($"Stock insuficiente en inventario para el producto {detalle.ProductoId} en el almacen {detalle.AlmacenId}. Disponible: {inventario?.CantidadActual ?? 0} Solicitado: {detalle.Cantidad}");
+                    throw new BusinessRuleException($"Stock insuficiente en inventario para el producto {detalle.ProductoId} en el almacen {detalle.AlmacenId}. Disponible: {inventario?.CantidadActual ?? 0} Solicitado: {detalle.Cantidad}");
                 }
                 inventario.CantidadActual -= detalle.Cantidad;
                 inventario.FechaActualizacion = DateTime.UtcNow;
@@ -70,7 +70,9 @@ public class VentasService(IVentaRepository ventaRepository, IInventarioReposito
             var createdVenta = await _ventasRepository.CreateVenta(venta);
 
             await transaction.CommitAsync();
-            return VentasBuilder.ToResponseDto(createdVenta);
+            // Se recarga con navegaciones para poder construir el response.
+            var reloaded = await _ventasRepository.GetVentaById(createdVenta.Id);
+            return VentasBuilder.ToResponseDto(reloaded!);
         }
         catch
         {
@@ -87,12 +89,12 @@ public class VentasService(IVentaRepository ventaRepository, IInventarioReposito
             var venta  = await _ventasRepository.GetVentaById(id);
             if(venta == null)
             {
-                throw new KeyNotFoundException($"Venta con Id {id} no encontrada.");
+                throw new ResourceNotFoundException($"Venta con id {id} no encontrado");
             }
 
             if(!venta.Estado)
             {
-                throw new InvalidOperationException("La venta ya se encuentra anulada");
+                throw new BusinessRuleException("La venta ya se encuentra anulada");
             }
             venta.Estado = false;
             if(venta.DetalleVentas != null)
@@ -124,7 +126,7 @@ public class VentasService(IVentaRepository ventaRepository, IInventarioReposito
         var totalVenta = 0m;
         if(venta == null)
         {
-            throw new ResourceNotFoundException("Venta no encontrada");
+            throw new ResourceNotFoundException($"Venta con id {id} no encontrado");
         }
         QuestPDF.Settings.License = LicenseType.Community;
         var document = Document.Create(container =>

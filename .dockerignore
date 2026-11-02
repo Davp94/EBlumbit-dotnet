@@ -1,0 +1,14 @@
+**/bin/
+**/obj/
+**/publish/
+**/.git/
+**/.codegraph/
+**/.vs/
+**/.vscode/
+**/logs/
+*.user
+*.suo
+Dockerfile
+.dockerignore
+docker-compose*.yml
+README.md

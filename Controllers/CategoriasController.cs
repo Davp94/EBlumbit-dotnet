@@ -1,10 +1,13 @@
+using EBlumbit.exceptions;
 using EBlumbit.Services.spec;
 using EBlumbit.Dto;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EBlumbit.Controllers
 {
-    [Route("api/[controller]")]
+    [Authorize]
+    [Route("api/categorias")]
     [ApiController]
     public class CategoriasController(ICategoriaService categoriaService) : ControllerBase
     {
@@ -21,7 +24,7 @@ namespace EBlumbit.Controllers
         public async Task<ActionResult<CategoriaResponseDto>> GetCategoriaById(int id)
         {
             var categoria = await _categoriaService.GetCategoriasById(id);
-            if (categoria == null) return NotFound();
+            if (categoria == null) throw new ResourceNotFoundException($"Categoria con id {id} no encontrado");
             return Ok(categoria);
         }
 

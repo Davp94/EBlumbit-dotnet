@@ -1,6 +1,7 @@
 using System;
 using EBlumbit.Builders;
 using EBlumbit.Dto;
+using EBlumbit.exceptions;
 using EBlumbit.Repository.spec;
 using EBlumbit.Services.spec;
 
@@ -19,6 +20,10 @@ public class CategoriaService(ICategoriaRepository categoriaRepository) : ICateg
     public async Task<CategoriaResponseDto> GetCategoriasById(int id)
     {
         var categoria = await _categoriaRepository.GetCategoriaById(id);
+        if (categoria == null)
+        {
+            throw new ResourceNotFoundException($"Categoria con id {id} no encontrado");
+        }
         return CategoriasBuilder.ToResponseDto(categoria);
     }
 
@@ -29,12 +34,17 @@ public class CategoriaService(ICategoriaRepository categoriaRepository) : ICateg
     }
     public async Task<CategoriaResponseDto> UpdateCategoria(int id, CreateCategoriaDto createCategoriaDto)
     {
+        // Se actualiza la entidad ya rastreada para evitar conflictos de tracking en EF.
         var categoria = await _categoriaRepository.GetCategoriaById(id);
-        if(categoria == null) return null;
+        if (categoria == null)
+        {
+            throw new ResourceNotFoundException($"Categoria con id {id} no encontrado");
+        }
 
-        var categoriaToUpdate = CategoriasBuilder.ToEntityUpdate(createCategoriaDto, id);
+        categoria.Nombre = createCategoriaDto.Nombre;
+        categoria.Detalle = createCategoriaDto.ResolveDetalle();
 
-        return CategoriasBuilder.ToResponseDto(await _categoriaRepository.UpdateCategorias(categoriaToUpdate));
+        return CategoriasBuilder.ToResponseDto(await _categoriaRepository.UpdateCategorias(categoria));
     }
     public async Task DeleteAsync(int id)
     {

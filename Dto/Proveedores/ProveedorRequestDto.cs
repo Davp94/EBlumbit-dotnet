@@ -4,18 +4,18 @@ namespace EBlumbit.Dto.Proveedores;
 
 public class ProveedorRequestDto
 {
-    [Required]
+    [Required(ErrorMessage = "La razon social es obligatoria")]
     public string RazonSocial { get; set; } = string.Empty;
 
     public string? NroIdentificacion { get; set; }
 
-    [Required]
+    [Required(ErrorMessage = "El contacto es obligatorio")]
     public string Contacto { get; set; } = string.Empty;
 
-    [Required]
+    [Required(ErrorMessage = "El telefono es obligatorio")]
     public string Telefono { get; set; } = string.Empty;
 
-    [EmailAddress]
+    [EmailAddress(ErrorMessage = "El correo no tiene un formato valido")]
     public string? Correo { get; set; }
 
     public string? Observaciones { get; set; }

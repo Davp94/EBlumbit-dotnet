@@ -10,12 +10,15 @@ public class ClienteDapperRepository(IConfiguration configuration) : IClienteRep
 {
     private readonly string _connectionString = configuration.GetConnectionString("DefaultConnection");
     private NpgsqlConnection CreateConnection() => new (_connectionString);
-    
+
+    private const string SelectColumns =
+        "\"Id\", \"NombreCompleto\", \"NroIdentificacion\", \"FechaNacimiento\", \"Telefono\", \"Correo\", \"Estado\"";
+
     public async Task<IEnumerable<Cliente>> GetAllClientes()
     {
         using var connection = CreateConnection();
-        const string sql ="""
-            select "Id", "NombreCompleto", "NroIdentificacion", "FechaNacmiento", "Telefono", "Correo", "Estado" 
+        var sql = $"""
+            select {SelectColumns}
             from "Clientes"
             order by "Id"
         """;
@@ -25,28 +28,33 @@ public class ClienteDapperRepository(IConfiguration configuration) : IClienteRep
     public async Task<Cliente?> GetClienteById(int id)
     {
         using var connection = CreateConnection();
-        const string sql ="""
-            select "Id", "NombreCompleto", "NroIdentificacion", "FechaNacmiento", "Telefono", "Correo", "Estado" 
+        var sql = $"""
+            select {SelectColumns}
             from "Clientes"
             where "Id" = @Id
         """;
         return await connection.QueryFirstOrDefaultAsync<Cliente>(sql, new { Id = id});
     }
+
     public async Task<Cliente> CreateCliente(Cliente cliente)
     {
         using var connection = CreateConnection();
-        const string sql = """
-            SELECT * FROM sp_crear_cliente(@p_nombre_completo, @p_nro_identificacion, @p_fecha_nacimiento, @p_telefono, @p_correo)
+        var sql = $"""
+            insert into "Clientes"
+                ("NombreCompleto", "NroIdentificacion", "FechaNacimiento", "Telefono", "Correo", "Estado")
+            values
+                (@NombreCompleto, @NroIdentificacion, @FechaNacimiento, @Telefono, @Correo, @Estado)
+            returning {SelectColumns}
         """;
-        var result = await connection.QueryFirstAsync<Cliente>(sql, new
+        return await connection.QueryFirstAsync<Cliente>(sql, new
         {
-            p_nombre_completo = cliente.NombreCompleto,
-            p_nro_identificacion = cliente.NroIdentificacion,
-            p_fecha_nacimiento = cliente.FechaNacimiento,
-            p_telefono = cliente.Telefono,
-            p_correo = cliente.Correo
+            cliente.NombreCompleto,
+            cliente.NroIdentificacion,
+            cliente.FechaNacimiento,
+            cliente.Telefono,
+            cliente.Correo,
+            cliente.Estado
         });
-        return result;
     }
 
     public async Task UpdateCliente(Cliente cliente)
@@ -74,6 +82,4 @@ public class ClienteDapperRepository(IConfiguration configuration) : IClienteRep
         """;
         await connection.ExecuteAsync(sql, new {Id = id});
     }
-
-
 }

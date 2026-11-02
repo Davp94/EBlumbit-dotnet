@@ -11,7 +11,7 @@ public class CategoriasBuilder
         return new Categoria
         {
             Nombre = dto.Nombre,
-            Detalle = dto.Detalle
+            Detalle = dto.ResolveDetalle()
         };
     }
 

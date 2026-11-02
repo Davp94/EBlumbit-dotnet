@@ -11,16 +11,20 @@ public class FileService(IConfiguration configuration, IWebHostEnvironment envir
 
     public async Task<Stream> GetFileAsync(string filePath)
     {
-        if(string.IsNullOrWhiteSpace(filePath))
+        if (string.IsNullOrWhiteSpace(filePath))
         {
             throw new FileNotFoundException("Ruta de archivo no válida");
         }
-        var fullPath = Path.Combine(_environment.ContentRootPath, filePath);
+
+        var fullPath = Path.IsPathRooted(filePath)
+            ? filePath
+            : Path.Combine(GetStoragePath(), filePath);
+
         if(!File.Exists(fullPath))
         {
             throw new FileNotFoundException("Archivo no encontrado", fullPath);
         }
-        return new FileStream(fullPath, FileMode.Open, FileAccess.Read);
+        return await Task.FromResult(new FileStream(fullPath, FileMode.Open, FileAccess.Read));
     }
 
     public async Task<string> SaveFile(IFormFile file)
@@ -30,8 +34,7 @@ public class FileService(IConfiguration configuration, IWebHostEnvironment envir
             throw new FileNotFoundException("Archivo es nulo o esta vacío");
         }
 
-        var storagePath = _configuration.GetValue<string>("Storage:FileDirectory");
-        var uploadPath = Path.Combine(_environment.ContentRootPath, storagePath);
+        var uploadPath = GetStoragePath();
         if(!Directory.Exists(uploadPath))
         {
             Directory.CreateDirectory(uploadPath);
@@ -40,7 +43,18 @@ public class FileService(IConfiguration configuration, IWebHostEnvironment envir
         var filePath = Path.Combine(uploadPath, fileName);
         var stream = new FileStream(filePath, FileMode.Create);
         await file.CopyToAsync(stream);
-        var savedFilePath = Path.Combine(uploadPath, fileName);
-        return savedFilePath;
+        return fileName;
+    }
+
+    private string GetStoragePath()
+    {
+        var storagePath = _configuration.GetValue<string>("Storage:FileDirectory");
+        if (string.IsNullOrWhiteSpace(storagePath))
+        {
+            return _environment.ContentRootPath;
+        }
+        return Path.IsPathRooted(storagePath)
+            ? storagePath
+            : Path.Combine(_environment.ContentRootPath, storagePath);
     }
 }

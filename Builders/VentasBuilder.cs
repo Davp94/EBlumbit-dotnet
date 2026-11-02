@@ -16,6 +16,7 @@ public class VentasBuilder
             Observacion = request.Observacion,
             ClienteId = request.ClienteId,
             UsuarioId = request.UsuarioId,
+            UsersId = request.UsuarioId,
             Estado = true,
             DetalleVentas = request.DetalleVenta.Select(d => new DetalleVenta
             {
@@ -34,7 +35,7 @@ public class VentasBuilder
         {
             Id = venta.Id,
             Codigo = venta.Codigo,
-            Fecha = venta.Fecha.ToString("dd-MM-yyy HH:mm:ss"),
+            Fecha = venta.Fecha.ToString("dd-MM-yyyy HH:mm:ss"),
             DescuentoTotal = venta.DescuentoTotal,
             Observacion = venta.Observacion,
             UsuarioId = venta.UsuarioId,
@@ -50,7 +51,7 @@ public class VentasBuilder
         {
             Id = venta.Id,
             Codigo = venta.Codigo,
-            Fecha = venta.Fecha.ToString("dd-MM-yyy HH:mm:ss"),
+            Fecha = venta.Fecha.ToString("dd-MM-yyyy HH:mm:ss"),
             DescuentoTotal = venta.DescuentoTotal,
             Observacion = venta.Observacion,
             UsuarioId = venta.UsuarioId,

@@ -20,6 +20,10 @@ public class Venta
 
     public int UsuarioId { get; set; }
 
+    // FK real de la tabla Ventas hacia users (columna UsersId). Se mantiene
+    // sincronizada con UsuarioId al crear la venta.
+    public int UsersId { get; set; }
+
     public Users Users { get; set; }
 
     public Cliente cliente { get; set; }

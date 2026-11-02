@@ -9,9 +9,6 @@ namespace EBlumbit.Controllers
     // Rutas validas para ambos frontends: /usuarios (Angular) y /api/usuarios (React).
     [Authorize]
     [Route("api/usuarios")]
-    [Route("usuarios")]
-    [Route("api/users")]
-    [Route("users")]
     [ApiController]
     public class UsersController(UserService userService) : ControllerBase
     {

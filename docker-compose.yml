@@ -1,0 +1,75 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: eblumbit-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-eblumbit_db}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-123456}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-eblumbit_db}",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: eblumbit-app
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-5071}:5071"
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
+      ASPNETCORE_URLS: http://+:5071
+      ConnectionStrings__DefaultConnection: "Host=db;Port=5432;Database=${POSTGRES_DB:-eblumbit_db};Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-123456}"
+      Jwt__Key: ${JWT_KEY:-8914xsA2389DDSA9348948923DSAJKDNSKDS}
+      Jwt__Issuer: ${JWT_ISSUER:-EblumbitIssuer}
+      Jwt__Audience: ${JWT_AUDIENCE:-EblumbitAudience}
+      Storage__FileDirectory: /app/files
+    volumes:
+      - app-files:/app/files
+      - app-logs:/app/logs
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # One-off service that applies EF Core migrations.
+  # Usage: docker compose --profile tools run --rm migrate
+  migrate:
+    image: mcr.microsoft.com/dotnet/sdk:10.0
+    profiles: ["tools"]
+    working_dir: /src
+    volumes:
+      - .:/src
+      - migrate-bin:/src/bin
+      - migrate-obj:/src/obj
+    environment:
+      ConnectionStrings__DefaultConnection: "Host=db;Port=5432;Database=${POSTGRES_DB:-eblumbit_db};Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-123456}"
+    command:
+      - bash
+      - -lc
+      - >
+        dotnet tool install --global dotnet-ef --version "10.*" &&
+        export PATH="$$PATH:/root/.dotnet/tools" &&
+        dotnet ef database update
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  postgres-data:
+  app-files:
+  app-logs:
+  migrate-bin:
+  migrate-obj:

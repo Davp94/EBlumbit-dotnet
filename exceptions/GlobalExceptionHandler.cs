@@ -17,6 +17,7 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
         {
           DomainException d => (d.StatusCode, d.ErrorCode),  
           KeyNotFoundException => (400, "Recurso no encontrado"),
+          FileNotFoundException => (404, "NOT_FOUND_EXCEPTION"),
           ValidationException => (400, "Error de validacion"),
           InvalidOperationException => (400, "Error de consulta"),
           ArgumentException => (400, "Error de request data"),

@@ -1,10 +1,13 @@
 using EBlumbit.Dto.Compras;
+using EBlumbit.exceptions;
 using EBlumbit.Services.spec;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EBlumbit.Controllers;
 
-[Route("api/[controller]")]
+[Authorize]
+[Route("api/compras")]
 [ApiController]
 public class ComprasController(IComprasService comprasService) : ControllerBase
 {
@@ -21,7 +24,8 @@ public class ComprasController(IComprasService comprasService) : ControllerBase
     public async Task<ActionResult<CompraDetailResponse>> GetCompraById(int id)
     {
         var compra = await _comprasService.FindCompraById(id);
-        return compra == null ? NotFound() : Ok(compra);
+        if (compra == null) throw new ResourceNotFoundException($"Compra con id {id} no encontrado");
+        return Ok(compra);
     }
 
     [HttpPost]

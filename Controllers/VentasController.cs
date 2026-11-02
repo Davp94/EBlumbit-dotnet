@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace EBlumbit.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/ventas")]
     [ApiController]
     [Authorize(Policy = "admin:ventas")]
     public class VentasController(IVentasService ventasService) : ControllerBase
@@ -24,7 +24,6 @@ namespace EBlumbit.Controllers
         public async Task<ActionResult<VentasDetailResponse>> GetVentasResponseById(int id)
         {
             var ventas = await _ventasService.FindVentaById(id);
-            if (ventas == null) return NotFound();
             return Ok(ventas);
         }
 

@@ -1,12 +1,14 @@
 using EBlumbit.Dto.Common;
 using EBlumbit.Dto.Productos;
 using EBlumbit.Services.spec;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EBlumbit.Controllers
 {
-    [Route("api/[controller]")]
+    [Authorize]
+    [Route("api/productos")]
     [ApiController]
     public class ProductosController(IProductoService productoService) : ControllerBase
     {

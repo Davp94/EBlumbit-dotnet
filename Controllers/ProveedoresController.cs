@@ -1,10 +1,13 @@
 using EBlumbit.Dto.Proveedores;
+using EBlumbit.exceptions;
 using EBlumbit.Services.spec;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EBlumbit.Controllers;
 
-[Route("api/[controller]")]
+[Authorize]
+[Route("api/proveedores")]
 [ApiController]
 public class ProveedoresController(IProveedorService proveedorService) : ControllerBase
 {
@@ -21,7 +24,7 @@ public class ProveedoresController(IProveedorService proveedorService) : Control
     public async Task<ActionResult<ProveedorResponseDto>> GetProveedorById(int id)
     {
         var proveedor = await _proveedorService.GetProveedorById(id);
-        if (proveedor == null) return NotFound();
+        if (proveedor == null) throw new ResourceNotFoundException($"Proveedor con id {id} no encontrado");
         return Ok(proveedor);
     }
 

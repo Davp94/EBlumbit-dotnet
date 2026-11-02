@@ -22,7 +22,7 @@ public class ClienteService(IClienteRepository clienteRepository) : IClienteServ
         var cliente = await _clienteRepository.GetClienteById(id);
         if (cliente  == null)
         {
-            throw new ResourceNotFoundException($"Cliente no encontrado");
+            throw new ResourceNotFoundException($"Cliente con id {id} no encontrado");
         }
         return ClientesBuilder.ToResponseDto(cliente);
     }
@@ -39,7 +39,7 @@ public class ClienteService(IClienteRepository clienteRepository) : IClienteServ
         var clienteToUpdate = await _clienteRepository.GetClienteById(id);
         if (clienteToUpdate  == null)
         {
-            throw new ResourceNotFoundException($"Cliente no encontrado");
+            throw new ResourceNotFoundException($"Cliente con id {id} no encontrado");
         }
         var entityToUpdate = ClientesBuilder.ToEntityUpdate(requestDto, clienteToUpdate);
         await _clienteRepository.UpdateCliente(entityToUpdate);
@@ -52,7 +52,7 @@ public class ClienteService(IClienteRepository clienteRepository) : IClienteServ
         var clienteToDelete = await _clienteRepository.GetClienteById(id);
         if (clienteToDelete  == null)
         {
-            throw new ResourceNotFoundException($"Cliente no encontrado");
+            throw new ResourceNotFoundException($"Cliente con id {id} no encontrado");
         }
         await _clienteRepository.DeleteCliente(id);
     }
