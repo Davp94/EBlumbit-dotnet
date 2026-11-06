@@ -39,6 +39,7 @@ builder.Services.AddScoped<SucursalRepository>();
 builder.Services.AddScoped<AlmacenRepository>();
 
 builder.Services.AddScoped<PermissionRepository>();
+builder.Services.AddScoped<RoleRepository>();
 builder.Services.AddScoped<ICategoriaRepository, CategoriaRepository>();
 builder.Services.AddScoped<IClienteRepository, ClienteDapperRepository>();
 builder.Services.AddScoped<ICompraRepository, CompraRepository>();
@@ -52,6 +53,7 @@ builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<SucursalService>();
 builder.Services.AddScoped<AlmacenService>();
 builder.Services.AddScoped<PermissionService>();
+builder.Services.AddScoped<RoleService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ICategoriaService, CategoriaService>();
 builder.Services.AddScoped<IClienteService, ClienteService>();
