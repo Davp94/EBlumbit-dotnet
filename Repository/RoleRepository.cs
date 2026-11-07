@@ -15,7 +15,9 @@ public class RoleRepository(AppDbContext context)
 
     public async Task<Role?> GetByIdAsync(int id)
     {
-        return await _context.Roles.FirstOrDefaultAsync(role => role.Id == id);
+        return await _context.Roles
+            .Include(role => role.PermissionRoles)
+            .FirstOrDefaultAsync(role => role.Id == id);
     }
 
     public async Task<Role> CreateAsync(Role role)

@@ -25,7 +25,8 @@ public class RoleService(RoleRepository roleRepository)
         var role = new Role
         {
             Nombre = request.Nombre,
-            Descripcion = request.Descripcion
+            Descripcion = request.Descripcion,
+            PermissionRoles = ToPermissionRoles(request.PermisosIds)
         };
 
         var created = await _roleRepository.CreateAsync(role);
@@ -39,6 +40,11 @@ public class RoleService(RoleRepository roleRepository)
 
         role.Nombre = request.Nombre;
         role.Descripcion = request.Descripcion;
+        role.PermissionRoles.Clear();
+        foreach (var permissionRole in ToPermissionRoles(request.PermisosIds))
+        {
+            role.PermissionRoles.Add(permissionRole);
+        }
 
         var updated = await _roleRepository.UpdateAsync(role);
         return ToResponseDto(updated);
@@ -60,5 +66,13 @@ public class RoleService(RoleRepository roleRepository)
             Nombre = role.Nombre,
             Descripcion = role.Descripcion
         };
+    }
+
+    private static ICollection<PermissionRole> ToPermissionRoles(IEnumerable<int> permissionIds)
+    {
+        return permissionIds
+            .Distinct()
+            .Select(permissionId => new PermissionRole { PermissionId = permissionId })
+            .ToList();
     }
 }
