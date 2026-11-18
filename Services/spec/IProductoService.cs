@@ -11,5 +11,6 @@ public interface IProductoService
     Task<ProductoResponseDto> GetProductoById(int id);
     Task<ProductoResponseDto> CreateProducto(ProductoRequestDto requestDto);
     Task<ProductoResponseDto> UpdateProducto(int id, ProductoRequestDto requestDto);
+    Task AsignarProductoAlmacen(int productoId, int almacenId);
     Task DeleteProducto(int id);
 }

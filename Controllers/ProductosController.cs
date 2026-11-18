@@ -37,6 +37,13 @@ namespace EBlumbit.Controllers
             return CreatedAtAction(nameof(GetProductoById), new { id = created.Id }, created);
         }
 
+        [HttpPost("{productoId}/almacen/{almacenId}")]
+        public async Task<IActionResult> AsignarProductoAlmacen(int productoId, int almacenId)
+        {
+            await _productoService.AsignarProductoAlmacen(productoId, almacenId);
+            return NoContent();
+        }
+
         [HttpPut("{id}")]
         public async Task<ActionResult<ProductoResponseDto>> UpdateProducto(int id, [FromBody] ProductoRequestDto requestDto)
         {

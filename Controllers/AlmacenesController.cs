@@ -25,6 +25,13 @@ namespace EBlumbit.Controllers
             return Ok(await _almacenService.GetById(id));
         }
 
+        [HttpGet("{sucursalId}/sucursal")]
+        public async Task<ActionResult<ICollection<AlmacenResponseDto>>> GetAlmacenesBySucursal(int sucursalId)
+        {
+            var almacenes = await _almacenService.GetBySucursalId(sucursalId);
+            return Ok(almacenes.ToList());
+        }
+
         [HttpPost]
         public async Task<ActionResult<AlmacenResponseDto>> CreateAlmacen([FromBody] AlmacenRequestDto request)
         {

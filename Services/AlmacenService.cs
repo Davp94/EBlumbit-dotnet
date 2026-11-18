@@ -15,6 +15,12 @@ public class AlmacenService(AlmacenRepository almacenRepository)
         return almacenes.Select(ToResponseDto);
     }
 
+    public async Task<IEnumerable<AlmacenResponseDto>> GetBySucursalId(int sucursalId)
+    {
+        var almacenes = await _almacenRepository.GetBySucursalIdAsync(sucursalId);
+        return almacenes.Select(ToResponseDto);
+    }
+
     public async Task<AlmacenResponseDto> GetById(int id)
     {
         var almacen = await _almacenRepository.GetByIdAsync(id)

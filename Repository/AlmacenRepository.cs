@@ -23,6 +23,15 @@ public class AlmacenRepository(AppDbContext context)
             .FirstOrDefaultAsync(a => a.Id == id);
     }
 
+    public async Task<IEnumerable<Almacenes>> GetBySucursalIdAsync(int sucursalId)
+    {
+        return await _context.Almacenes
+            .Include(a => a.Sucursal)
+            .Where(a => a.SucursalId == sucursalId)
+            .OrderBy(a => a.Id)
+            .ToListAsync();
+    }
+
     public async Task<Almacenes> CreateAsync(Almacenes almacen)
     {
         _context.Almacenes.Add(almacen);

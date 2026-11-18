@@ -3,16 +3,24 @@ using EBlumbit.Builders;
 using EBlumbit.Dto.Common;
 using EBlumbit.Dto.Productos;
 using EBlumbit.exceptions;
+using EBlumbit.Models;
+using EBlumbit.Repository;
 using EBlumbit.Repository.spec;
 using EBlumbit.Services.spec;
 
 namespace EBlumbit.Services.impl;
 
-public class ProductoService(IProductoRepository productoRepository, IFIleService fileService) : IProductoService
+public class ProductoService(
+    IProductoRepository productoRepository,
+    IFIleService fileService,
+    IInventarioRepository inventarioRepository,
+    AlmacenRepository almacenRepository) : IProductoService
 {
     private readonly IProductoRepository _productoRepository = productoRepository;
 
     private readonly IFIleService _fileService = fileService;
+    private readonly IInventarioRepository _inventarioRepository = inventarioRepository;
+    private readonly AlmacenRepository _almacenRepository = almacenRepository;
 
     public async Task<PageResult<ProductoResponseDto>> GetProductosPagination(ProductoQueryParams queryParams)
     {
@@ -76,6 +84,35 @@ public class ProductoService(IProductoRepository productoRepository, IFIleServic
 
        var updated = await _productoRepository.UpdateProducto(producto);
        return ProductosBuilder.ToResponseDto(updated);
+    }
+
+    public async Task AsignarProductoAlmacen(int productoId, int almacenId)
+    {
+        var producto = await _productoRepository.GetProductoById(productoId);
+        if (producto == null)
+        {
+            throw new ResourceNotFoundException($"Producto con id {productoId} no encontrado");
+        }
+
+        var almacen = await _almacenRepository.GetByIdAsync(almacenId);
+        if (almacen == null)
+        {
+            throw new ResourceNotFoundException($"Almacen con id {almacenId} no encontrado");
+        }
+
+        var inventario = await _inventarioRepository.GetByProductoAndAlmacen(productoId, almacenId);
+        if (inventario != null)
+        {
+            return;
+        }
+
+        await _inventarioRepository.CreateInventario(new Inventario
+        {
+            ProductoId = productoId,
+            AlmacenId = almacenId,
+            CantidadActual = 0,
+            FechaActualizacion = DateTime.UtcNow
+        });
     }
 
     public async Task DeleteProducto(int id)
